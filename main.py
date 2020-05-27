@@ -15,27 +15,47 @@ def main():
 
 	print('Generating dataset')
 
+	# print("number of parties are: "+str(args.num_tasks))
+	# print("number of classes are: "+str(args.num_classes))
+	# print("number of dimensions are: "+str(args.num_dim))
+	# print("number of partitions are: "+str(args.num_partition))
+	# print("size lower bound is: "+str(args.size_low))
+	# print("size higher bound is "+str(args.size_high))
 	# set number of samples for each party
-	num_samples = get_num_samples(args.num_tasks)
+	num_samples = get_num_samples(args.num_tasks, args.sigma, args.size_low, args.size_high)
+	
+	# dataset = generator.SyntheticDataset(
+	# 	num_classes=args.num_classes, prob_clusters=PROB_CLUSTERS, num_dim=args.num_dim, seed=args.seed)
 
-	dataset = generator.SyntheticDataset(
-		num_classes=args.num_classes, prob_clusters=PROB_CLUSTERS, num_dim=args.num_dim, seed=args.seed)
+	# # generate datasets for each party and render them as list
+	# tasks = [dataset.get_task(s) for s in num_samples]
 
-	# generate datasets for each party and render them as list
-	tasks = [dataset.get_task(s) for s in num_samples]
+	# # transform the datasets into certain formats preferred
+	# users, num_samples, user_data = to_leaf_format(tasks)
 
-	# transform the datasets into certain formats preferred
-	users, num_samples, user_data = to_leaf_format(tasks)
-
-	# save generated datasets to desired directory
-	save_json('data/all_data', 'data.json', users, num_samples, user_data)
-	print('Done :D')
+	# # save generated datasets to desired directory
+	# save_json('data/all_data', 'data.json', users, num_samples, user_data)
+	# print('Done :D')
 
 
-def get_num_samples(num_tasks, min_num_samples=5, max_num_samples=1000):
-	num_samples = np.random.lognormal(3, 2, (num_tasks)).astype(int)
-	num_samples = [min(s + min_num_samples, max_num_samples) for s in num_samples]
-	return num_samples
+
+
+def get_num_samples(num_tasks, sigma, size_low, size_high):
+
+	ref = (size_high - size_low)/2
+	mu_ref = np.random.normal(loc = ref, scale = 1., size = None)
+	print('mu_ref is: '+str(mu_ref))
+
+
+	mu_list =[]
+	while len(mu_list) < num_tasks:
+		mu = round(np.random.normal(loc = mu_ref, scale = sigma, size = None))
+		if size_low <= mu <=size_high:	
+			mu_list.append(mu)
+
+	print('mu_list is: '+str(mu_list))
+
+
 
 
 def to_leaf_format(tasks):
@@ -71,19 +91,19 @@ def parse_args():
 
 	parser.add_argument(
 		'-num-tasks',
-		help='number of parties;',
+		help='number of parties',
 		type=int,
 		required=True)
-	parser.add_argument(
-		'-num-classes',
-		help='number of classes;',
-		type=int,
-		required=True)
-	parser.add_argument(
-		'-num-dim',
-		help='number of dimensions;',
-		type=int,
-		required=True)
+	# parser.add_argument(
+	# 	'-num-classes',
+	# 	help='number of classes;',
+	# 	type=int,
+	# 	required=True)
+	# parser.add_argument(
+	# 	'-num-dim',
+	# 	help='number of dimensions;',
+	# 	type=int,
+	# 	required=True)
 	parser.add_argument(
 		'-seed',
 		help='seed for the random processes;',
@@ -94,8 +114,8 @@ def parse_args():
 
 
 	parser.add_argument(
-		'-num-partition',
-		help='The number of partitions the user want to divide the party sample size range. The greater, then more diverse.',
+		'-sigma',
+		help='Sigma of which the party sample size value',
 		type=int,
 		default=2,
 		required=False)
