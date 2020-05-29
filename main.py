@@ -33,7 +33,6 @@ def main():
 		dataset = Datasets_generator.make_dataset(s, w, sep) 
 		datasets[str(idx)] = dataset
 
-	print('datasets is: '+str(datasets))
 	user_data = to_format(datasets)
 
 	save_json('data/all_data', 'data.json', user_data)
@@ -72,14 +71,22 @@ def get_class_sep(num_tasks, class_seps_sigma):
 def get_weights(label_sigma, n_classes, num_tasks, imbalance_factor):
 	loc = np.random.normal(loc=0, scale=1., size=None)
 	mu = np.random.normal(loc=loc, scale=label_sigma, size=num_tasks)
-
 	weights = np.zeros((num_tasks, n_classes))
-	for idx in range(weights.shape[0]):
 
-		w = np.random.normal(loc = mu[idx], scale = imbalance_factor, size = n_classes)
+	if label_sigma == 0.0:
+		print('label_sigma is zero')
+		w = np.random.normal(loc = mu[0], scale = imbalance_factor, size = n_classes)
+		for idx in range(weights.shape[0]):
+			weights[idx, :] = w
 
-		weights[idx, :] = w
+	else: 
+		for idx in range(weights.shape[0]):
+
+			w = np.random.normal(loc = mu[idx], scale = imbalance_factor, size = n_classes)
+
+			weights[idx, :] = w
 	
+	print('weights before softmax: '+str(weights))
 	scaled = softmax(weights, axis = 1)
 	print('weights after softmax: '+str(scaled))
 	return scaled
