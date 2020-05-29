@@ -1,17 +1,16 @@
 {
     "meta": {
-        "n_parties": 5,
+        "n_parties": 2,
         "n_classes": 2,
         "n_features": 5,
-        "seed":43,
-        "model_sigma":5
+        "seed":43
     },
     "feature_distribution":{
-        "model_sigma":5
+        "x_sigma":5
 
     },
     "sample_size":{
-        "data_potion": null,
+        "data_potion": [0.4,0.6],
         "total_size":3000
     },
 
@@ -19,5 +18,5 @@
         [0.2,0.8],
         [0.7]
     ],
-    "noise":[0.1,0.2]
+    "noise":[0.1,0.2,0.4, 0.5, 0.6]
 }

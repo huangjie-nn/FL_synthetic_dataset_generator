@@ -36,27 +36,28 @@ def main():
 		data['meta']['n_parties']
 	)
 
-	generator = generator.SyntheticDataset(
+	g = generator.SyntheticDataset(
 		num_classes=data['meta']['n_classes'], 
 		prob_clusters=PROB_CLUSTERS, 
 		num_dim=data['meta']['n_features'], 
 		seed=data['meta']['seed'],
-		num_parties = data['meta']['n_parties'],
-		model_sigma = data['meta']['model_sigma']
+		x_sigma = data['feature_distribution']['x_sigma']
 		)
 	
-	datasets= generator.get_tasks(num_samples, weights)
+	datasets= g.get_tasks(num_samples, weights, noises)
 
 	# user_data = to_format(datasets)
 
 	# save_json('data/all_data', 'data.json', user_data)
 	# print('Done :D')
-	# return datasets
+	return datasets
 
 def get_noises(noises, n_parties):
 	if len(noises) < n_parties:
 		for i in range(len(noises),n_parties):
-			noises.append[0.0]
+			noises.append(0.0)
+	elif len(noises) > n_parties:
+		noises = noises[:n_parties]
 	return noises
 	
 
@@ -75,8 +76,9 @@ def get_weights(weights, n_classes, num_tasks):
 				if sum(w) >1 :
 					raise ValueError("the weight specified for party %s does not add up to 1." %i)
 				w = w + [1.0 - sum(w)]
-				weight_list[i,:] = w
+
 			count += 1 
+			weight_list[i,:] = w
 
 		if count < num_tasks:
 			for idx in range(count, num_tasks):
@@ -118,6 +120,7 @@ def get_num_samples(data_potion, n_classes, size_ref, num_tasks):
 	print('number of parties: %s' %num_tasks)
 	print('data potion is: %s' %data_potion)
 	print('num_samples are: '+str(num_samples))
+	return num_samples
 
 
 # def to_format(tasks):

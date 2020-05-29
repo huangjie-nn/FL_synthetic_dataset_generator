@@ -1,7 +1,8 @@
 import numpy as np
 import numbers
+import math
 from scipy.special import softmax
-from sklearn.datasets import make_classification
+from collections import Counter
 
 SEED = 43
 
@@ -14,24 +15,16 @@ class SyntheticDataset:
             num_classes=2,
             seed=931231,
             num_dim=NUM_DIM,
-            prob_clusters=[0.5, 0.5],
-            model_sigma = 1.0):
+            prob_clusters=[1.0],
+            x_sigma = 1.0):
 
-
-# sources of heterogeneity:
-    #1) x generating process -> loc -> sigma is the same for all x to draw multivariant normal distribution
-        # thinking -> use same loc, but intake a sigma, represent the std of the sigma across x from diff parties
-    #2) model info -> Q is the same for all, but model info is diff
-        # thinking -> use same Q, intake a sigma, represent the std of the model info generating sigma, to control 
-        # diff 
-    #3) noise generating -> how much noise for each party 
+    
         np.random.seed(seed)
-
         self.num_classes = num_classes
         self.num_dim = num_dim
         self.num_clusters = len(prob_clusters)
         self.prob_clusters = prob_clusters
-
+        self.x_sigma = x_sigma
         self.side_info_dim = self.num_clusters
 
         self.Q = np.random.normal(
@@ -43,14 +36,18 @@ class SyntheticDataset:
 
         self.means = self._generate_clusters()
 
-    def get_task(self, num_samples):
-        B = np.random.normal(loc=0.0, scale=1.0, size=None)
-        loc = np.random.normal(loc=B, scale=1.0, size=self.num_dim)
+    def get_tasks(self, num_samples, weights, noises):
+
+        datasets = {}
+        B = np.random.normal(loc=0.0, scale=self.x_sigma, size=None)
 
         cluster_idx = np.random.choice(
             range(self.num_clusters), size=None, replace=True, p=self.prob_clusters)
-        new_task = self._generate_task(self.means[cluster_idx], cluster_idx, num_samples)
-        return new_task
+
+        for i, (s, w, n) in enumerate(zip(num_samples, weights, noises)):
+            new_task = self._generate_task(self.means[cluster_idx], cluster_idx, s, n, B, w)
+            datasets[str(i)] = new_task
+        return datasets
 
     def _generate_clusters(self):
         means = []
@@ -60,31 +57,93 @@ class SyntheticDataset:
             means.append(mu)
         return means
 
-    def _generate_x(self, num_samples, loc):
-        # B = np.random.normal(loc=0.0, scale=1.0, size=None)
-        # loc = np.random.normal(loc=B, scale=1.0, size=self.num_dim)
-
+    def _generate_x(self, B, num_samples):
+        loc = np.random.normal(loc=B, scale=1.0, size=self.num_dim)
         samples = np.ones((num_samples, self.num_dim + 1))
         samples[:, 1:] = np.random.multivariate_normal(
             mean=loc, cov=self.Sigma, size=num_samples)
 
         return samples
 
-    def _generate_y(self, x, cluster_mean):
-        model_info = np.random.normal(loc=cluster_mean, scale=0.1, size=cluster_mean.shape)
+    def _generate_y(self, x, model_info, noise):
+
+
         w = np.matmul(self.Q, model_info)
         
         num_samples = x.shape[0]
-        prob = softmax(np.matmul(x, w) + np.random.normal(loc=0., scale=0.1, size=(num_samples, self.num_classes)), axis=1)
+        prob = softmax(np.matmul(x, w) + noise * np.random.normal(loc=0., scale=0.1, size=(num_samples, self.num_classes)), axis=1)
                 
         y = np.argmax(prob, axis=1)
         return y, w, model_info
 
-    def _generate_task(self, cluster_mean, cluster_id, num_samples):
-        x = self._generate_x(num_samples)
-        y, w, model_info = self._generate_y(x, cluster_mean)
+    def _generate_task(self, cluster_mean, cluster_id, num_samples, noise, B, label_weights):
 
-        # now that we have y, we can remove the bias coeff
+        num_labels = [math.floor(num_samples * i) for i in label_weights]
+
+        model_info = np.random.normal(loc=cluster_mean, scale=0.1, size=cluster_mean.shape)
+        
+
+        x, y=self._get_sets(num_labels, model_info, num_samples, noise, B)
+
+        print('expected label distribution is %s' %num_labels)
+        sorted_counts = self._count_helper(y, num_labels)
+
+        print('current potion after populating step %s' %sorted_counts)
+
+        final_x, final_y = self._trim(x, y, num_labels)
+
+        sorted_counts = self._count_helper(final_y, num_labels)
+
+        print('current potion after trimming step %s' %sorted_counts)
+
+        return {'x': final_x, 'y': final_y}
+
+    def _count_helper(self, y, num_labels):
+
+        counts = Counter(y)
+
+        for i in range(len(num_labels)):
+            value = counts.get(i,None)
+            if value is None:
+                counts[i]=0
+
+        sorted_counts = [counts[key] for key in sorted(counts.keys(), reverse=False)]
+
+        return sorted_counts
+
+    def _trim(self, x, y, num_labels):
+        x = np.array(x)
+        y = np.array(y)
+        idx_to_keep = []
+        for i in range(len(num_labels)):
+            indexes = [idx for idx,label in enumerate(y) if label == i]
+            if len(indexes) > num_labels[i]:
+                idx_to_keep.extend(indexes[:num_labels[i]])
+
+        final_x = x[idx_to_keep]
+        final_y = y[idx_to_keep]
+        return final_x, final_y
+
+
+    def _get_sets(self, num_labels, model_info, num_samples, noise, B, full_x=[], full_y=[]):
+
+        x, y = self._generate_trialset(model_info, num_samples, noise, B)
+        full_x.extend(x)
+        full_y.extend(y) 
+
+        sorted_counts = self._count_helper(full_y, num_labels)
+
+        for expect, reality in zip(num_labels, sorted_counts):
+            if expect > reality:
+                x, y = self._get_sets(num_labels, model_info, num_samples, noise, B, full_x, full_y)
+
+        return full_x, full_y
+
+
+
+    def _generate_trialset(self, model_info, num_samples, noise, B):
+        x = self._generate_x(B, num_samples)
+        y, w, model_info = self._generate_y(x, model_info, noise)
         x = x[:, 1:]
 
-        return {'x': x, 'y': y, 'w': w, 'model_info': model_info, 'cluster': cluster_id}
+        return x, y
