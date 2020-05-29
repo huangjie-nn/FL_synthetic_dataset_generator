@@ -11,7 +11,7 @@
     },
     "sample_size":{
         "data_potion": [0.4,0.6],
-        "total_size":3000
+        "total_size":30
     },
 
     "label_distribution":[
