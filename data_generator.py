@@ -5,26 +5,86 @@ from sklearn.datasets import make_classification
 
 SEED = 43
 
-class SyntheticDataGenerator:
+NUM_DIM = 10
 
-    def __init__(self,
-        seed =43,
-        n_features = 2,
-        n_classes = 2,
-        n_clusters_per_class = 2,
-        ):
-        self.seed = seed
-        self.n_features = n_features
-        self.n_classes = n_classes
-        self.n_clusters_per_class = n_clusters_per_class
+class SyntheticDataset:
+
+    def __init__(
+            self,
+            num_classes=2,
+            seed=931231,
+            num_dim=NUM_DIM,
+            prob_clusters=[0.5, 0.5],
+            model_sigma = 1.0):
+
+
+# sources of heterogeneity:
+    #1) x generating process -> loc -> sigma is the same for all x to draw multivariant normal distribution
+        # thinking -> use same loc, but intake a sigma, represent the std of the sigma across x from diff parties
+    #2) model info -> Q is the same for all, but model info is diff
+        # thinking -> use same Q, intake a sigma, represent the std of the model info generating sigma, to control 
+        # diff 
+    #3) noise generating -> how much noise for each party 
+        np.random.seed(seed)
+
+        self.num_classes = num_classes
+        self.num_dim = num_dim
+        self.num_clusters = len(prob_clusters)
+        self.prob_clusters = prob_clusters
+
+        self.side_info_dim = self.num_clusters
+
+        self.Q = np.random.normal(
+            loc=0.0, scale=1.0, size=(self.num_dim + 1, self.num_classes, self.side_info_dim))
+
+        self.Sigma = np.zeros((self.num_dim, self.num_dim))
+        for i in range(self.num_dim):
+            self.Sigma[i, i] = (i + 1)**(-1.2)
+
+        self.means = self._generate_clusters()
+
+    def get_task(self, num_samples):
+        B = np.random.normal(loc=0.0, scale=1.0, size=None)
+        loc = np.random.normal(loc=B, scale=1.0, size=self.num_dim)
+
+        cluster_idx = np.random.choice(
+            range(self.num_clusters), size=None, replace=True, p=self.prob_clusters)
+        new_task = self._generate_task(self.means[cluster_idx], cluster_idx, num_samples)
+        return new_task
+
+    def _generate_clusters(self):
+        means = []
+        for i in range(self.num_clusters):
+            loc = np.random.normal(loc=0, scale=1., size=None)
+            mu = np.random.normal(loc=loc, scale=1., size=self.side_info_dim)
+            means.append(mu)
+        return means
+
+    def _generate_x(self, num_samples, loc):
+        # B = np.random.normal(loc=0.0, scale=1.0, size=None)
+        # loc = np.random.normal(loc=B, scale=1.0, size=self.num_dim)
+
+        samples = np.ones((num_samples, self.num_dim + 1))
+        samples[:, 1:] = np.random.multivariate_normal(
+            mean=loc, cov=self.Sigma, size=num_samples)
+
+        return samples
+
+    def _generate_y(self, x, cluster_mean):
+        model_info = np.random.normal(loc=cluster_mean, scale=0.1, size=cluster_mean.shape)
+        w = np.matmul(self.Q, model_info)
         
+        num_samples = x.shape[0]
+        prob = softmax(np.matmul(x, w) + np.random.normal(loc=0., scale=0.1, size=(num_samples, self.num_classes)), axis=1)
+                
+        y = np.argmax(prob, axis=1)
+        return y, w, model_info
 
-    def make_dataset(self, n_samples, weights, sep):
-        x, y = make_classification(n_samples=n_samples, n_features=self.n_features, n_informative=self.n_features,
-                        n_redundant=0, n_repeated=0, n_classes=self.n_classes,
-                        n_clusters_per_class=2, weights=weights, flip_y=0.0,
-                        class_sep=sep, hypercube=True, shift=0.0, scale=1.0,
-                        shuffle=True, random_state=None)
+    def _generate_task(self, cluster_mean, cluster_id, num_samples):
+        x = self._generate_x(num_samples)
+        y, w, model_info = self._generate_y(x, cluster_mean)
 
-        
-        return {'x': x, 'y': y}
+        # now that we have y, we can remove the bias coeff
+        x = x[:, 1:]
+
+        return {'x': x, 'y': y, 'w': w, 'model_info': model_info, 'cluster': cluster_id}
