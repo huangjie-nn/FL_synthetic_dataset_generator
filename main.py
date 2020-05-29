@@ -54,7 +54,10 @@ def main():
 	# return datasets
 
 def get_noises(noises, n_parties):
-	if len(noises) < n_parties
+	if len(noises) < n_parties:
+		for i in range(len(noises),n_parties):
+			noises.append[0.0]
+	return noises
 	
 
 def get_weights(weights, n_classes, num_tasks):

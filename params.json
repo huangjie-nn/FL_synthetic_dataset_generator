@@ -1,0 +1,23 @@
+{
+    "meta": {
+        "n_parties": 5,
+        "n_classes": 2,
+        "n_features": 5,
+        "seed":43,
+        "model_sigma":5
+    },
+    "feature_distribution":{
+        "model_sigma":5
+
+    },
+    "sample_size":{
+        "data_potion": null,
+        "total_size":3000
+    },
+
+    "label_distribution":[
+        [0.2,0.8],
+        [0.7]
+    ],
+    "noise":[0.1,0.2]
+}
