@@ -11,12 +11,12 @@
     },
     "sample_size":{
         "data_potion": [0.4,0.6],
-        "total_size":30
+        "total_size":999
     },
 
     "label_distribution":[
         [0.2,0.8],
-        [0.7]
+        [0.5, 0.5]
     ],
     "noise":[0.1,0.2,0.4, 0.5, 0.6]
 }
