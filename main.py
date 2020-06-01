@@ -22,14 +22,14 @@ def main():
 	print('Generating dataset')
 	np.random.seed(data['meta']['seed'])
 	num_samples = get_num_samples(
-		data['sample_size']['data_potion'], 
-		data['meta']['n_classes'], 
-		data['sample_size']['total_size'], 
+		data['sample_size']['data_potion'],
+		data['meta']['n_classes'],
+		data['sample_size']['total_size'],
 		data['meta']['n_parties'])
 
 	weights = get_weights(
-		data['label_distribution'], 
-		data['meta']['n_classes'], 
+		data['label_distribution'],
+		data['meta']['n_classes'],
 		data['meta']['n_parties'])
 
 	test_weights = get_weights(
@@ -51,9 +51,9 @@ def main():
 	)
 
 	g = generator.SyntheticDataset(
-		num_classes=data['meta']['n_classes'], 
-		prob_clusters=PROB_CLUSTERS, 
-		num_dim=data['meta']['n_features'], 
+		num_classes=data['meta']['n_classes'],
+		prob_clusters=PROB_CLUSTERS,
+		num_dim=data['meta']['n_features'],
 		seed=data['meta']['seed'],
 		n_parties = data['meta']['n_parties'],
 		x_level_noise = data['noise']['x_level_noise']
@@ -121,7 +121,7 @@ def get_noises(noises, n_parties):
 	elif len(noises) > n_parties:
 		noises = noises[:n_parties]
 	return noises
-	
+
 
 def get_weights(weights, n_classes, num_tasks):
 
@@ -139,7 +139,7 @@ def get_weights(weights, n_classes, num_tasks):
 					raise ValueError("the weight specified for party %s does not add up to 1." %i)
 				w = w + [1.0 - sum(w)]
 
-			count += 1 
+			count += 1
 			weight_list[i,:] = w
 
 		if count < num_tasks:
@@ -203,7 +203,7 @@ def to_format(tasks):
 def save_json(json_dir, json_name, user_data):
 	if not os.path.exists(json_dir):
 		os.makedirs(json_dir)
-	
+
 	with open(os.path.join(json_dir, json_name), 'w') as outfile:
 		json.dump(user_data, outfile)
 
