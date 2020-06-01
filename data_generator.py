@@ -16,7 +16,8 @@ class SyntheticDataset:
             seed=931231,
             num_dim=NUM_DIM,
             prob_clusters=[1.0],
-            x_sigma = 1.0):
+            x_sigma = 1.0,
+            n_parties = 2):
 
     
         np.random.seed(seed)
@@ -26,6 +27,7 @@ class SyntheticDataset:
         self.prob_clusters = prob_clusters
         self.x_sigma = x_sigma
         self.side_info_dim = self.num_clusters
+        self.n_parties = n_parties
 
         self.Q = np.random.normal(
             loc=0.0, scale=1.0, size=(self.num_dim + 1, self.num_classes, self.side_info_dim))
@@ -39,13 +41,13 @@ class SyntheticDataset:
     def get_tasks(self, num_samples, weights, noises):
 
         datasets = {}
-        B = np.random.normal(loc=0.0, scale=self.x_sigma, size=None)
+        B = np.random.normal(loc=0.0, scale=self.x_sigma, size=self.n_parties)
 
         cluster_idx = np.random.choice(
             range(self.num_clusters), size=None, replace=True, p=self.prob_clusters)
 
-        for i, (s, w, n) in enumerate(zip(num_samples, weights, noises)):
-            new_task = self._generate_task(self.means[cluster_idx], cluster_idx, s, n, B, w)
+        for i, (s, w, n, b) in enumerate(zip(num_samples, weights, noises, B)):
+            new_task = self._generate_task(self.means[cluster_idx], cluster_idx, s, n, b, w)
             datasets[str(i)] = new_task
         return datasets
 

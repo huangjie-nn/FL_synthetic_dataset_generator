@@ -41,7 +41,8 @@ def main():
 		prob_clusters=PROB_CLUSTERS, 
 		num_dim=data['meta']['n_features'], 
 		seed=data['meta']['seed'],
-		x_sigma = data['feature_distribution']['x_sigma']
+		x_sigma = data['feature_distribution']['x_sigma'],
+		n_parties = data['meta']['n_parties']
 		)
 	
 	datasets= g.get_tasks(num_samples, weights, noises)
