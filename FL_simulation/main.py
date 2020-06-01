@@ -29,7 +29,7 @@ from tqdm.notebook import trange
 from IPython.display import display
 from scipy.special import softmax
 
-from contrib_calc import *
+from contrib_calc import Contribution_Calculation
 from FL_env import *
 from synth_data_prep import *
 
@@ -148,8 +148,7 @@ trained_model, global_states, client_states, scale_coeffs, global_model_state_di
 # # trainloaders
 # print(scale_coeffs)
 
-client_state_dict = fill_client_state_dict(client_states)
-client_alignment_matrix, client_deletion_matrix = contribution_calculation(model_hyperparams, global_states, client_state_dict, testing_dataset, 'Singular', scale_coeffs)
-contributions = aggregate_contribution_matrices(model_hyperparams, client_alignment_matrix, client_deletion_matrix)
+cc = Contribution_Calculation(global_states, model_hyperparams, client_states, testing_dataset, scale_coeffs)
+cc.contribution_calculation('Aggregate')
 
-print(contributions)
+# print(contributions)
