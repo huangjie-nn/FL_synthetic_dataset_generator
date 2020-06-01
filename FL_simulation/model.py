@@ -1,33 +1,9 @@
-import copy
-import math
-import os
-import random
-import sys
-import time
-from collections import OrderedDict
-from pathlib import Path
-from collections import defaultdict
-import json
-
 # Libs
-import sklearn as skl
-from sklearn import preprocessing
-import sklearn.datasets as skld
-from sklearn.metrics import mean_squared_error, accuracy_score, roc_auc_score
-from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 import numpy as np
 import pandas as pd
-import missingno as msno
-import matplotlib.pyplot as plt
-import seaborn as sbn
-import syft as sy
 import torch as th
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
-from tqdm import tqdm, tnrange, tqdm_notebook
-from tqdm.notebook import trange
-from IPython.display import display
-from scipy.special import softmax
 
 class Model(nn.Module):
     """

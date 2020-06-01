@@ -71,18 +71,13 @@ class Contribution_Calculation:
         """
         This function evaluates the client's contribution to performance metrics
         in isolation from those of other clients.
-
         Args:
             global_states (dict): Dictionary of global model states.
             client_state_dict (dict): Dictionary of client model states at each timestep.
-            testing_dataset (th.tensor): The testing dataset
             reference_eval (float): The accuracy and ROC-AUC score of the baseline model
                                     at timestep rnd.
             rnd (int): The current round
             client_idx (int): The index of the client being evaluated
-            scale_coeffs (OrderedDict): Scaling factors for each client based
-                                        on number of datapoints, indexed by
-                                        FL worker ID.
         Returns:
             Difference between performance of client model and global model.
         """
@@ -107,14 +102,10 @@ class Contribution_Calculation:
         Args:
             global_states (dict): Dictionary of global model states.
             client_state_dict (dict): Dictionary of client model states at each timestep.
-            testing_dataset (th.tensor): The testing dataset
             reference_eval (float): The accuracy and ROC-AUC score of the baseline model
                                     at timestep rnd.
             rnd (int): The current round
             client_idx (int): The index of the client being evaluated
-            scale_coeffs (OrderedDict): Scaling factors for each client based
-                                        on number of datapoints, indexed by
-                                        FL worker ID.
         Returns:
             Difference between performance of client model and global model.
         """
@@ -155,7 +146,6 @@ class Contribution_Calculation:
             model_hyperparams (dict): Hyperparams used in FL model training.
             global_states (dict): Dictionary of global model states.
             client_state_dict (dict): Dictionary of client model states at each timestep.
-            testing_dataset (th.tensor): The testing dataset.
             del_method (string): Choice of singular or aggregate deletion method.
             scale_coeffs (OrderedDict): Scaling factors for each client based
                                         on number of datapoints, indexed by
@@ -186,16 +176,14 @@ class Contribution_Calculation:
 
             for client_idx in self.client_state_dict[rnd].keys():
 
-    #             ============
-    #             Calculate alignment of dl/dw with GRV
-    #             print(client_state_dict[rnd][client_idx])
+                #============
+                # Calculate alignment of dl/dw with GRV
                 dl_dw = self.calculate_dl_dw(current_global_state, rnd, client_idx)
                 alignment = self.calculate_alignment(dl_dw, GRV)
                 print('---------')
                 print(f'Alignment of client {client_idx} with GRV at round {rnd}')
                 print(alignment.numpy())
                 client_alignment_matrix[client_idx][rnd - 1] = alignment.numpy()
-
                 #============
                 # Calculate change in model performance metrics when client contribution is
                 # selectively deleted.
