@@ -4,7 +4,6 @@ import math
 from scipy.special import softmax
 from collections import Counter
 
-SEED = 43
 
 NUM_DIM = 10
 
@@ -37,7 +36,8 @@ class SyntheticDataset:
 
         self.means = self._generate_clusters()
 
-    def get_tasks(self, num_samples, weights, noises, B):
+
+    def get_tasks(self, num_samples, weights, noises, loc_list):
 
         datasets = {}
 
@@ -45,8 +45,9 @@ class SyntheticDataset:
         cluster_idx = np.random.choice(
             range(self.num_clusters), size=None, replace=True, p=self.prob_clusters)
 
-        for i, (s, w, n, b) in enumerate(zip(num_samples, weights, noises, B)):
-            new_task = self._generate_task(self.means[cluster_idx], cluster_idx, s, n, b, w)
+        for i, (s, w, n, loc) in enumerate(zip(num_samples, weights, noises, loc_list)):
+            print('current party is number. %s' %i)
+            new_task = self._generate_task(self.means[cluster_idx], cluster_idx, s, n, loc, w)
             datasets[str(i)] = new_task
         return datasets
 
@@ -58,8 +59,8 @@ class SyntheticDataset:
             means.append(mu)
         return means
 
-    def _generate_x(self, B, num_samples):
-        loc = np.random.normal(loc=B, scale=1.0, size=self.num_dim)
+    def _generate_x(self, loc, num_samples):
+        # loc = np.random.normal(loc=B, scale=1.0, size=self.num_dim)
         samples = np.ones((num_samples, self.num_dim + 1))
         samples[:, 1:] = np.random.multivariate_normal(
             mean=loc, cov=self.Sigma, size=num_samples)
@@ -86,18 +87,18 @@ class SyntheticDataset:
         y = np.argmax(prob, axis=1)
         return y, w, model_info
 
-    def _generate_task(self, cluster_mean, cluster_id, num_samples, noise, b, label_weights):
+    def _generate_task(self, cluster_mean, cluster_id, num_samples, noise, loc, label_weights):
 
+        print('in _generate_task')
         num_labels = [math.floor(num_samples * i) for i in label_weights]
         
         left_over = num_samples - sum(num_labels)
-        print('left over is: %s' %left_over)
         num_labels[-1] += left_over
 
         model_info = np.random.normal(loc=cluster_mean, scale=0.1, size=cluster_mean.shape)
         
 
-        x, y=self._get_sets(num_labels, model_info, num_samples, noise, b)
+        x, y=self._get_sets(num_labels, model_info, num_samples, noise, loc, [], [], 0)
 
         print('expected label distribution is %s' %num_labels)
         sorted_counts = self._count_helper(y, num_labels)
@@ -139,24 +140,24 @@ class SyntheticDataset:
         return final_x, final_y
 
 
-    def _get_sets(self, num_labels, model_info, num_samples, noise, B, full_x=[], full_y=[]):
+    def _get_sets(self, num_labels, model_info, num_samples, noise, loc, full_x=[], full_y=[], count = 0):
 
-        x, y = self._generate_trialset(model_info, num_samples, noise, B)
+        x, y = self._generate_trialset(model_info, num_samples, noise, loc)
         full_x.extend(x)
         full_y.extend(y) 
-
+        count +=1
         sorted_counts = self._count_helper(full_y, num_labels)
-
+        print('current sorted count is: %s' %sorted_counts)
         for expect, reality in zip(num_labels, sorted_counts):
             if expect > reality:
-                x, y = self._get_sets(num_labels, model_info, num_samples, noise, B, full_x, full_y)
-
+                x, y = self._get_sets(num_labels, model_info, num_samples, noise, loc, full_x, full_y, count)
+        print('count %s' %count)
         return full_x, full_y
 
 
 
-    def _generate_trialset(self, model_info, num_samples, noise, B):
-        x = self._generate_x(B, num_samples)
+    def _generate_trialset(self, model_info, num_samples, noise, loc):
+        x = self._generate_x(loc, num_samples)
         y, w, model_info = self._generate_y(x, model_info, noise)
         x = x[:, 1:]
 
