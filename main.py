@@ -32,7 +32,13 @@ def main():
 		data['meta']['n_parties'])
 
 	noises = get_noises(
-		data['noise'],
+		data['noise']['noise_level'],
+		data['meta']['n_parties']
+	)
+
+	B = get_B(
+		data['feature_distribution']['B'],
+		data['feature_distribution']['x_sigma'],
 		data['meta']['n_parties']
 	)
 
@@ -41,16 +47,28 @@ def main():
 		prob_clusters=PROB_CLUSTERS, 
 		num_dim=data['meta']['n_features'], 
 		seed=data['meta']['seed'],
-		x_sigma = data['feature_distribution']['x_sigma'],
-		n_parties = data['meta']['n_parties']
+		n_parties = data['meta']['n_parties'],
+		x_level_noise = data['noise']['x_level_noise']
 		)
 	
-	datasets= g.get_tasks(num_samples, weights, noises)
+
+	datasets = g.get_tasks(num_samples, weights, noises, B)
 
 	user_data = to_format(datasets)
 
 	save_json('data/all_data', 'data.json', user_data)
-	return datasets
+	return datasets, B
+
+def get_B(B, x_sigma, n_parties):
+	if B is None:
+		print("B is not provided, generating B")
+		B = np.random.normal(loc=0.0, scale=x_sigma, size=n_parties)
+	elif (B is not None) and (len(B) !=n_parties):
+		raise ValueError("B is provided but the dimensionality "
+			"is incompatible with number of parties") 
+	print("B is %s" %B)
+	return B
+	
 
 def get_noises(noises, n_parties):
 	if len(noises) < n_parties:
@@ -115,7 +133,10 @@ def get_num_samples(data_potion, n_classes, size_ref, num_tasks):
 			num_samples.append(num)
 	else:
 		num_samples = [int(size_ref * (1/num_tasks))] * num_tasks
-		#num_samples = get_num_samples(args.num_tasks, args.size_factor, args.size_low, args.size_high)
+		
+	left_over = size_ref - sum(num_samples)
+	print('left over is: %s' %left_over)
+	num_samples[-1] += left_over
 	print('number of class: %s' %n_classes)
 	print('number of parties: %s' %num_tasks)
 	print('data potion is: %s' %data_potion)
