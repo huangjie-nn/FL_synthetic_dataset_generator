@@ -12,12 +12,12 @@
 
     },
     "sample_size":{
-        "data_potion": null,
+        "data_portion": null,
         "total_size":3000
     },
 
     "label_distribution":[
-        
+
     ],
     "noise":{
         "noise_level":[0.1,0.2,0.4, 0.5, 0.6],
