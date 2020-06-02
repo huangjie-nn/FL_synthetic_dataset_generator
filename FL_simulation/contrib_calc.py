@@ -15,25 +15,23 @@ import torch as th
 from scipy.special import softmax
 
 class Contribution_Calculation:
-    def __init__(self, global_states,
-                       model_hyperparams,
-                       client_states,
-                       testing_dataset,
-                       scale_coeffs):
-
+    def __init__(self,
+                global_states,
+                model_hyperparams,
+                client_states,
+                testing_dataset,
+                scale_coeffs):
         self.global_states = global_states
         self.model_hyperparams = model_hyperparams
         self.client_states = client_states
         self.testing_dataset = testing_dataset
         self.scale_coeffs = scale_coeffs
-
         self._fill_client_state_dict()
 
     def _prep_client_state_dict(self):
         """ Takes in the client states dictionary returned by training function.
             Returns dictionary initialized with empty dictionaries for each client
             at each timestep.
-
         Args:
             client_states (dict): Client states at each communication round.
         Returns:
@@ -52,7 +50,6 @@ class Contribution_Calculation:
     def _fill_client_state_dict(self):
         """ Populates prepared client state dictionary with model states
             for each client at each timestep.
-
         Args:
             client_states (dict): Client states at each communication round.
         Returns:
@@ -83,7 +80,6 @@ class Contribution_Calculation:
         """
         single_client_model = copy.deepcopy(self.global_states[rnd - 1])
         single_client_model.load_state_dict(self.client_state_dict[rnd][client_idx])
-
         client_eval = self.perform_FL_testing(single_client_model)
         print('---------')
         print(f"Improvement of {client_idx}'s update in isolation when applied to global model at round {rnd - 1}")
@@ -98,7 +94,6 @@ class Contribution_Calculation:
         """
         This function evaluates the client's contribution to performance metrics
         in isolation from those of other clients.
-
         Args:
             global_states (dict): Dictionary of global model states.
             client_state_dict (dict): Dictionary of client model states at each timestep.
@@ -141,7 +136,6 @@ class Contribution_Calculation:
         """
         This function calculates the contribution of each client to model
         training using the deletion and alignment methods.
-
         Args:
             model_hyperparams (dict): Hyperparams used in FL model training.
             global_states (dict): Dictionary of global model states.
@@ -166,7 +160,8 @@ class Contribution_Calculation:
         for rnd in range(1, total_num_rounds + 1):
             current_global_state = self.global_states[rnd - 1]
 
-            GRV = self.calculate_GRV(final_global_state, current_global_state)
+            GRV = self.calculate_GRV(final_global_state,
+                                    current_global_state)
 
             reference_eval = self.perform_FL_testing(current_global_state)
 
@@ -227,11 +222,15 @@ class Contribution_Calculation:
         with th.no_grad():
             predicted_labels = model(X_test.float())
             if self.model_hyperparams['is_condensed']:
-                accuracy = accuracy_score(y_test.numpy(), predicted_labels.round().numpy())
-                roc = roc_auc_score(y_test.numpy(), predicted_labels.numpy())
+                accuracy = accuracy_score(y_test.numpy(),
+                                        predicted_labels.round().numpy())
+                roc = roc_auc_score(y_test.numpy(),
+                                        predicted_labels.numpy())
             else:
-                accuracy = accuracy_score(y_test.numpy(), np.array([np.argmax(i) for i in predicted_labels.numpy()]))
-                roc = roc_auc_score(y_test.numpy(), np.array([softmax(i) for i in predicted_labels.numpy()]), multi_class='ovr')
+                accuracy = accuracy_score(y_test.numpy(),
+                                        np.array([np.argmax(i) for i in predicted_labels.numpy()]))
+                roc = roc_auc_score(y_test.numpy(),
+                                        np.array([softmax(i) for i in predicted_labels.numpy()]), multi_class='ovr')
         return accuracy, roc
 
     def index_scale_coeffs_by_integer(self):
