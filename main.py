@@ -3,13 +3,12 @@ import json
 import numpy as np
 import os
 from scipy.special import softmax
-from collections import defaultdict
 import data_generator as generator
 import math
 import json
+from collections import defaultdict
 
 
-PROB_CLUSTERS = [1.0]
 
 
 def main():
@@ -50,31 +49,55 @@ def main():
 		data['meta']['n_features']
 	)
 
+	perturb_list = get_perturbation(
+		data['model_perturbation']['mean'],
+		data['model_perturbation']['std'],
+		data['meta']['n_features'],
+		data['meta']['n_parties'],
+		data['meta']['n_classes']
+	)
+
 	g = generator.SyntheticDataset(
 		num_classes=data['meta']['n_classes'],
-		prob_clusters=PROB_CLUSTERS,
 		num_dim=data['meta']['n_features'],
 		seed=data['meta']['seed'],
 		n_parties = data['meta']['n_parties'],
 		x_level_noise = data['noise']['x_level_noise']
 		)
 
-	datasets = g.get_tasks(num_samples, weights, noises, loc_list)
-
+	datasets, model_weight_dic = g.get_tasks(num_samples, weights, noises, loc_list, perturb_list)
 
 	print('test test %s' %([0] * data['meta']['n_parties']))
-	testset = g.get_tasks(
+	testset, _ = g.get_tasks(
 		([data['meta']['testset_size_per_party']]*data['meta']['n_parties']),
 		test_weights, 
 		([0] * data['meta']['n_parties']),
-		loc_list)
+		loc_list,
+		perturb_list)
 
 
 	user_data = to_format(datasets)
 	test_data = test_to_format(testset)
+	x_stats = get_x_stats(g, loc_list)
+
 	save_json('data/all_data', 'data.json', user_data)
 	save_json('data/all_data', 'test_data.json', test_data)
-	return datasets
+	save_json('data/all_data','x_stats.json',x_stats)
+	save_json('data/all_data','Q_dict.json', model_weight_dic)
+
+	return datasets, test_data, x_stats, model_weight_dic
+
+def get_perturbation(perturb_mean, perturb_std, n_features, n_parties, n_classes):
+	perturb_mean = get_stats_from_json(perturb_mean, n_parties, 0)
+	perturb_std = get_stats_from_json(perturb_std, n_parties, 0.01)
+	perturb_dict = defaultdict()
+	for i, (mean, std) in enumerate(zip(perturb_mean, perturb_std)):
+
+		epslon = np.random.normal(
+        	loc=mean, scale=std, size=(n_features + 1, n_classes))
+		perturb_dict[i] = epslon
+	print('perturb dict is  %s' %perturb_dict)
+	return perturb_dict
 
 def test_to_format(testset):
 	aggregated_test = [v for k,v in testset.items()]
@@ -87,31 +110,34 @@ def test_to_format(testset):
 	testset = {'x': final_test_x, 'y': final_test_y}
 	return testset
 
+def get_x_stats(data_generator, loc_list):
+	rlt_dict = defaultdict(dict)
+	loc_list = np.array(loc_list)
+	for i in range(loc_list.shape[0]):
+		for j in range(loc_list.shape[1]):
+			rlt_dict[str(i)]['feature_'+str(j)] = {"mean":loc_list[i][j], 
+					"std":data_generator.Sigma[j][j]
+					}
+				
+	print('obtained rlt_dict is: %s' %rlt_dict)
+	return rlt_dict
+
 def get_loc_list(x_mean, x_sigma, n_parties, n_features):
 	loc = np.zeros((n_parties, n_features))
-	x_mean = get_x_mean(x_mean, n_features)
-	x_sigma = get_x_sigma(x_sigma, n_features)
+	x_mean = get_stats_from_json(x_mean, n_features, 0)
+	x_sigma = get_stats_from_json(x_sigma, n_features, 1)
 	for i, (mean, sigma) in enumerate(zip(x_mean, x_sigma)):
 		loc[:,i] = np.random.normal(loc=mean, scale = sigma, size = n_parties)
 	return loc
 
-def get_x_mean(x_mean, n_features):
-	if x_mean is None:
-		x_mean = np.array([0.]*n_features)
-	elif len(x_mean) < n_features:
-		x_mean = x_mean + [0.]*(n_features - len(x_mean))
-	elif len(x_mean) > n_features:
-		x_mean = x_mean[:n_features]
-	return x_mean
-
-def get_x_sigma(x_sigma, n_features):
-	if x_sigma is None:
-		x_sigma = np.array([1]*n_features)
-	elif len(x_sigma) < n_features:
-		x_sigma = x_sigma + [1]*(n_features - len(x_sigma))
-	elif len(x_sigma) > n_features:
-		x_sigma = x_sigma[:n_features]
-	return x_sigma
+def get_stats_from_json(stats_list, length, default_value = 0):
+	if stats_list is None:
+		stats_list = np.array([default_value]*length)
+	elif len(stats_list) < length:
+		stats_list = stats_list + [default_value]*(length - len(stats_list))
+	elif len(stats_list) > length:
+		stats_list = stats_list[:length]
+	return stats_list
 
 
 def get_noises(noises, n_parties):
@@ -210,3 +236,7 @@ def save_json(json_dir, json_name, user_data):
 
 if __name__ == '__main__':
 	main()
+
+
+
+
