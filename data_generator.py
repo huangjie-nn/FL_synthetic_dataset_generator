@@ -16,8 +16,8 @@ class SyntheticDataset:
             seed=931231,
             num_dim=NUM_DIM,
             prob_clusters=[1.0],
-            x_sigma = 1.0,
-            n_parties = 2):
+            n_parties = 2,
+            x_level_noise = 1):
 
     
         np.random.seed(seed)
@@ -25,10 +25,9 @@ class SyntheticDataset:
         self.num_dim = num_dim
         self.num_clusters = len(prob_clusters)
         self.prob_clusters = prob_clusters
-        self.x_sigma = x_sigma
         self.side_info_dim = self.num_clusters
         self.n_parties = n_parties
-
+        self.x_level_noise = x_level_noise
         self.Q = np.random.normal(
             loc=0.0, scale=1.0, size=(self.num_dim + 1, self.num_classes, self.side_info_dim))
 
@@ -38,10 +37,10 @@ class SyntheticDataset:
 
         self.means = self._generate_clusters()
 
-    def get_tasks(self, num_samples, weights, noises):
+    def get_tasks(self, num_samples, weights, noises, B):
 
         datasets = {}
-        B = np.random.normal(loc=0.0, scale=self.x_sigma, size=self.n_parties)
+
 
         cluster_idx = np.random.choice(
             range(self.num_clusters), size=None, replace=True, p=self.prob_clusters)
@@ -70,22 +69,35 @@ class SyntheticDataset:
     def _generate_y(self, x, model_info, noise):
 
 
+        if self.x_level_noise == 1:
+            x = x + np.random.normal(loc=0, scale=0.1, size=x.shape) * noise
+        
         w = np.matmul(self.Q, model_info)
         
         num_samples = x.shape[0]
-        prob = softmax(np.matmul(x, w) + noise * np.random.normal(loc=0., scale=0.1, size=(num_samples, self.num_classes)), axis=1)
+
+
+
+        prob = softmax(np.matmul(x, w))
+        if self.x_level_noise == 0:
+
+            prob = prob + noise * np.random.normal(loc=0., scale=0.1, size=(num_samples, self.num_classes), axis=1)
                 
         y = np.argmax(prob, axis=1)
         return y, w, model_info
 
-    def _generate_task(self, cluster_mean, cluster_id, num_samples, noise, B, label_weights):
+    def _generate_task(self, cluster_mean, cluster_id, num_samples, noise, b, label_weights):
 
         num_labels = [math.floor(num_samples * i) for i in label_weights]
+        
+        left_over = num_samples - sum(num_labels)
+        print('left over is: %s' %left_over)
+        num_labels[-1] += left_over
 
         model_info = np.random.normal(loc=cluster_mean, scale=0.1, size=cluster_mean.shape)
         
 
-        x, y=self._get_sets(num_labels, model_info, num_samples, noise, B)
+        x, y=self._get_sets(num_labels, model_info, num_samples, noise, b)
 
         print('expected label distribution is %s' %num_labels)
         sorted_counts = self._count_helper(y, num_labels)
