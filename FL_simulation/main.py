@@ -70,6 +70,7 @@ binary_model_structure =  {
 # }
 
 model_hyperparams = binary_model_hyperparams
+model_structure = binary_model_hyperparams
 
 #============
 # Set up Federated Learning environment.
@@ -93,7 +94,7 @@ for worker_id in list(training_pointers.keys()):
     #============
     # Convert training datasets into syft dataloaders.
     train_loader, test_loader = convert_to_FL_batches(
-        binary_model_hyperparams,
+        model_hyperparams,
         train,
         testing_pointer
     )
@@ -101,7 +102,7 @@ for worker_id in list(training_pointers.keys()):
 
 trained_model, global_states, client_states, scale_coeffs, global_model_state_dicts = perform_FL_training(
     model_hyperparams,
-    binary_model_structure,
+    model_structure,
     trainloaders,
     workers,
     crypto_provider
