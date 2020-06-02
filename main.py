@@ -11,6 +11,7 @@ import json
 
 PROB_CLUSTERS = [1.0]
 
+
 def main():
 
 	#args = parse_args()
@@ -19,7 +20,7 @@ def main():
 	with open('params.json') as json_file:
 		data = json.load(json_file)
 	print('Generating dataset')
-
+	np.random.seed(data['meta']['seed'])
 	num_samples = get_num_samples(
 		data['sample_size']['data_potion'],
 		data['meta']['n_classes'],
@@ -31,15 +32,22 @@ def main():
 		data['meta']['n_classes'],
 		data['meta']['n_parties'])
 
+	test_weights = get_weights(
+		None,
+		data['meta']['n_classes'],
+		data['meta']['n_parties']
+	)
+
 	noises = get_noises(
 		data['noise']['noise_level'],
 		data['meta']['n_parties']
 	)
 
-	B = get_B(
-		data['feature_distribution']['B'],
-		data['feature_distribution']['x_sigma'],
-		data['meta']['n_parties']
+	loc_list = get_loc_list(
+		data['feature_distribution']['x_mean'],
+	  	data['feature_distribution']['x_sigma'],
+	 	data['meta']['n_parties'],
+		data['meta']['n_features']
 	)
 
 	g = generator.SyntheticDataset(
@@ -50,25 +58,61 @@ def main():
 		n_parties = data['meta']['n_parties'],
 		x_level_noise = data['noise']['x_level_noise']
 		)
-	
 
-	datasets = g.get_tasks(num_samples, weights, noises, B)
+	datasets = g.get_tasks(num_samples, weights, noises, loc_list)
+
+
+	print('test test %s' %([0] * data['meta']['n_parties']))
+	testset = g.get_tasks(
+		([data['meta']['testset_size_per_party']]*data['meta']['n_parties']),
+		test_weights, 
+		([0] * data['meta']['n_parties']),
+		loc_list)
+
 
 	user_data = to_format(datasets)
-
+	test_data = test_to_format(testset)
 	save_json('data/all_data', 'data.json', user_data)
-	return datasets, B
+	save_json('data/all_data', 'test_data.json', test_data)
+	return datasets
 
-def get_B(B, x_sigma, n_parties):
-	if B is None:
-		print("B is not provided, generating B")
-		B = np.random.normal(loc=0.0, scale=x_sigma, size=n_parties)
-	elif (B is not None) and (len(B) !=n_parties):
-		raise ValueError("B is provided but the dimensionality "
-			"is incompatible with number of parties") 
-	print("B is %s" %B)
-	return B
-	
+def test_to_format(testset):
+	aggregated_test = [v for k,v in testset.items()]
+	final_test_x = []
+	final_test_y = []
+	for i in range(len(aggregated_test)):
+		final_test_x.extend(aggregated_test[i]['x'].tolist())
+		final_test_y.extend(aggregated_test[i]['y'].tolist())
+
+	testset = {'x': final_test_x, 'y': final_test_y}
+	return testset
+
+def get_loc_list(x_mean, x_sigma, n_parties, n_features):
+	loc = np.zeros((n_parties, n_features))
+	x_mean = get_x_mean(x_mean, n_features)
+	x_sigma = get_x_sigma(x_sigma, n_features)
+	for i, (mean, sigma) in enumerate(zip(x_mean, x_sigma)):
+		loc[:,i] = np.random.normal(loc=mean, scale = sigma, size = n_parties)
+	return loc
+
+def get_x_mean(x_mean, n_features):
+	if x_mean is None:
+		x_mean = np.array([0.]*n_features)
+	elif len(x_mean) < n_features:
+		x_mean = x_mean + [0.]*(n_features - len(x_mean))
+	elif len(x_mean) > n_features:
+		x_mean = x_mean[:n_features]
+	return x_mean
+
+def get_x_sigma(x_sigma, n_features):
+	if x_sigma is None:
+		x_sigma = np.array([1]*n_features)
+	elif len(x_sigma) < n_features:
+		x_sigma = x_sigma + [1]*(n_features - len(x_sigma))
+	elif len(x_sigma) > n_features:
+		x_sigma = x_sigma[:n_features]
+	return x_sigma
+
 
 def get_noises(noises, n_parties):
 	if len(noises) < n_parties:

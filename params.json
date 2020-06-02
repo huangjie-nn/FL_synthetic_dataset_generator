@@ -1,23 +1,23 @@
 {
     "meta": {
         "n_parties": 3,
-        "n_classes": 2,
+        "n_classes": 4,
         "n_features": 5,
-        "seed":43
+        "seed":1232323232,
+        "testset_size_per_party":30
     },
     "feature_distribution":{
-        "x_sigma":5,
-        "B":null
+        "x_mean":[],
+        "x_sigma":[]
 
     },
     "sample_size":{
-        "data_potion": [0.4,0.2],
-        "total_size":30
+        "data_potion": null,
+        "total_size":3000
     },
 
     "label_distribution":[
-        [0.2,0.8],
-        [0.5, 0.5]
+        
     ],
     "noise":{
         "noise_level":[0.1,0.2,0.4, 0.5, 0.6],

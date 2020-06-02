@@ -16,4 +16,4 @@ In centralized or distributed learning setting, data are iid in nature. However,
 The user just need to specify the parameters in param.json. 
 
 ## Algorithm
-![alt text](./images/sdg_algo.png)
+![alt text](./images/sdg.png)
