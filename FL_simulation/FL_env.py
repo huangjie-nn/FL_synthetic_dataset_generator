@@ -70,8 +70,7 @@ def secret_share(tensor, workers, crypto_provider, precision_fractional):
         )
     )
 
-def setup_FL_env(training_datasets, validation_datasets,
-                 testing_dataset, is_shared=False):
+def setup_FL_env(training_datasets, testing_dataset, is_shared=False):
     """ Sets up a basic federated learning environment using virtual workers,
         with a allocated arbiter (i.e. TTP) to faciliate in model development
         & utilisation, and deploys datasets to their respective workers
@@ -79,12 +78,10 @@ def setup_FL_env(training_datasets, validation_datasets,
     Args:
 
         training_datasets   (dict(tuple(th.Tensor))): Datasets to be used for training
-        validation_datasets (dict(tuple(th.Tensor))): Datasets to be used for validation
         testing_dataset           (tuple(th.Tensor)): Datasets to be used for testing
         is_shared (bool): Toggles if SMPC encryption protocols are active
     Returns:
         training_pointers  (dict(sy.BaseDataset))
-        validation_pointer (dict(sy.BaseDataset))
         testing_pointer    (sy.BaseDataset)
         workers            (list(sy.VirtualWorker))
         crypto_provider    (sy.VirtualWorker)
@@ -99,9 +96,8 @@ def setup_FL_env(training_datasets, validation_datasets,
 
     assert (len(crypto_provider._objects) == 0)
 
-    # Send training & validation datasets to their respective workers
+    # Send training datasets to their respective workers
     training_pointers = {}
-    validation_pointers = {}
     for w_idx in range(len(workers)):
 
         # Retrieve & prepare worker for receiving dataset
@@ -111,22 +107,19 @@ def setup_FL_env(training_datasets, validation_datasets,
         assert (len(curr_worker._objects) == 0)
 
         train_data = training_datasets[w_idx]
-        validation_data = validation_datasets[w_idx]
 
         # Cast dataset into a Tensor & send it to the relevant worker
         train_pointer = sy.BaseDataset(*train_data).send(curr_worker)
-        validation_pointer = sy.BaseDataset(*validation_data).send(curr_worker)
 
         # Store data pointers for subsequent reference
         training_pointers[curr_worker] = train_pointer
-        validation_pointers[curr_worker] = validation_pointer
 
     # 'Me' serves as the client -> test pointer stays with me, but is shared via SMPC
     testing_pointer = sy.BaseDataset(*testing_dataset).send(crypto_provider)
 
-    return training_pointers, validation_pointers, testing_pointer, workers, crypto_provider
+    return training_pointers, testing_pointer, workers, crypto_provider
 
-def convert_to_FL_batches(model_hyperparams, train_pointers, validation_pointers, test_pointer):
+def convert_to_FL_batches(model_hyperparams, train_pointers, test_pointer):
     """ Supplementary function to convert initialised datasets into their
         SGD compatible dataloaders in the context of PySyft's federated learning
         (NOTE: This is based on the assumption that querying database size does
@@ -134,11 +127,9 @@ def convert_to_FL_batches(model_hyperparams, train_pointers, validation_pointers
     Args:
         model_hyperparams                      (model_hyperparams): Parameters defining current experiment
         train_pointers      (dict(sy.BaseDataset)): Distributed datasets for training
-        validation_pointers (dict(sy.BaseDataset)): Distributed datasets for model calibration
         test_pointer              (sy.BaseDataset): Distributed dataset for verifying performance
     Returns:
         train_loaders     (sy.FederatedDataLoader)
-        validation_loader (sy.FederatedDataLoader)
         test_loader       (sy.FederatedDataLoader)
     """
 
@@ -172,13 +163,10 @@ def convert_to_FL_batches(model_hyperparams, train_pointers, validation_pointers
     # Load training pointers into a configured federated dataloader
     train_loader = construct_FL_loader(train_pointers.values())
 
-    # Load validation pointer into a configured federated dataloader
-    validation_loader = construct_FL_loader(validation_pointers.values())
-
     # Load testing dataset into a configured federated dataloader
     test_loader = construct_FL_loader([test_pointer])
 
-    return train_loader, validation_loader, test_loader
+    return train_loader, test_loader
 
 def perform_FL_training(model_hyperparams,
                         model_structure,

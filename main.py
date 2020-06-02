@@ -8,40 +8,11 @@ import math
 import json
 from collections import defaultdict
 from helper_main import *
+import sys
 
-data_quantity_distributions = [ [0.2, 0.2, 0.2, 0.2, 0.2] ]
-data_label_distributions = [ [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5]] ]
-noise_level_settings = [ [0.1, 0.2, 0.4, 0.5, 0.6] ]
-x_level_noise_settings = [0, 1]
-
-def generate_params():
-
-
-
-    data = {"meta": {"n_parties": 5,
-                    "n_classes": 2,
-                    "n_features": 5,
-                    "seed":1232323232,
-                    "testset_size_per_party":30},
-
-            "feature_distribution":{"x_mean":[],
-                                    "x_sigma":[]},
-
-            "sample_size":{"data_portion": data_quantity_distributions[0],
-                            "total_size":3000},
-
-            "label_distribution":data_label_distributions[0],
-
-            "noise":{"noise_level":noise_level_settings[0],
-                    "x_level_noise": x_level_noise_settings[1] },
-
-            "model_perturbation":{"mean":[],
-                                "std":[]}
-        }
-
-    return data
-
-data = generate_params()
+base_path = "./data/" + str(sys.argv[1])
+with open(base_path + "/params.json") as json_file:
+		data = json.load(json_file)
 
 print('Generating dataset')
 np.random.seed(data['meta']['seed'])
@@ -105,7 +76,7 @@ user_data = to_format(datasets)
 test_data = test_to_format(testset)
 x_stats = get_x_stats(g, loc_list)
 
-save_json('data/all_data', 'data.json', user_data)
-save_json('data/all_data', 'test_data.json', test_data)
-save_json('data/all_data','x_stats.json',x_stats)
-save_json('data/all_data','Q_dict.json', model_weight_dic)
+save_json(base_path, 'data.json', user_data)
+save_json(base_path, 'test_data.json', test_data)
+save_json(base_path,'x_stats.json',x_stats)
+save_json(base_path,'Q_dict.json', model_weight_dic)
