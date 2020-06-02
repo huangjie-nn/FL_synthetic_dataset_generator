@@ -147,11 +147,9 @@ class SyntheticDataset:
         full_y.extend(y) 
         count +=1
         sorted_counts = self._count_helper(full_y, num_labels)
-        print('current sorted count is: %s' %sorted_counts)
         for expect, reality in zip(num_labels, sorted_counts):
             if expect > reality:
                 x, y = self._get_sets(num_labels, model_info, num_samples, noise, loc, full_x, full_y, count)
-        print('count %s' %count)
         return full_x, full_y
 
 
