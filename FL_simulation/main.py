@@ -109,3 +109,17 @@ trained_model, global_states, client_states, scale_coeffs, global_model_state_di
 
 cc = Contribution_Calculation(global_states, model_hyperparams, client_states, testing_dataset, scale_coeffs)
 cc.contribution_calculation('Singular')
+
+contributions = cc.aggregate_contribution_matrices()
+
+with open('./data/' + str(dataset_idx) + '/Q_dict.json') as json_file:
+    Q_dict = json.load(json_file)
+with open('./data/' + str(dataset_idx) + '/x_stats.json') as json_file:
+    x_stats = json.load(json_file)
+with open('./data/' + str(dataset_idx) + '/params.json') as json_file:
+    params = json.load(json_file)
+
+print(params)
+print(x_stats)
+print(Q_dict)
+print(contributions)
