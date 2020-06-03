@@ -15,25 +15,23 @@ import torch as th
 from scipy.special import softmax
 
 class Contribution_Calculation:
-    def __init__(self, global_states,
-                       model_hyperparams,
-                       client_states,
-                       testing_dataset,
-                       scale_coeffs):
-
+    def __init__(self,
+                global_states,
+                model_hyperparams,
+                client_states,
+                testing_dataset,
+                scale_coeffs):
         self.global_states = global_states
         self.model_hyperparams = model_hyperparams
         self.client_states = client_states
         self.testing_dataset = testing_dataset
         self.scale_coeffs = scale_coeffs
-
         self._fill_client_state_dict()
 
     def _prep_client_state_dict(self):
         """ Takes in the client states dictionary returned by training function.
             Returns dictionary initialized with empty dictionaries for each client
             at each timestep.
-
         Args:
             client_states (dict): Client states at each communication round.
         Returns:
@@ -52,7 +50,6 @@ class Contribution_Calculation:
     def _fill_client_state_dict(self):
         """ Populates prepared client state dictionary with model states
             for each client at each timestep.
-
         Args:
             client_states (dict): Client states at each communication round.
         Returns:
@@ -83,7 +80,6 @@ class Contribution_Calculation:
         """
         single_client_model = copy.deepcopy(self.global_states[rnd - 1])
         single_client_model.load_state_dict(self.client_state_dict[rnd][client_idx])
-
         client_eval = self.perform_FL_testing(single_client_model)
         print('---------')
         print(f"Improvement of {client_idx}'s update in isolation when applied to global model at round {rnd - 1}")
@@ -98,7 +94,6 @@ class Contribution_Calculation:
         """
         This function evaluates the client's contribution to performance metrics
         in isolation from those of other clients.
-
         Args:
             global_states (dict): Dictionary of global model states.
             client_state_dict (dict): Dictionary of client model states at each timestep.
@@ -141,7 +136,6 @@ class Contribution_Calculation:
         """
         This function calculates the contribution of each client to model
         training using the deletion and alignment methods.
-
         Args:
             model_hyperparams (dict): Hyperparams used in FL model training.
             global_states (dict): Dictionary of global model states.
@@ -154,11 +148,14 @@ class Contribution_Calculation:
             client_alignment_matrix (np.array): Client alignments at each timestep.
             client_deletion_matrix (np.array): Differences in client performance at each timestep.
         """
+        self.global_performance = []
+
         total_num_rounds = self.model_hyperparams['rounds']
 
         final_global_state = self.global_states[total_num_rounds]
         client_alignment_matrix = np.zeros([len(self.client_state_dict[1].keys()), total_num_rounds], dtype=np.float64)
-        client_deletion_matrix = np.zeros([len(self.client_state_dict[1].keys()), total_num_rounds], dtype=np.float64)
+        client_accuracy_matrix = np.zeros([len(self.client_state_dict[1].keys()), total_num_rounds], dtype=np.float64)
+        client_ROC_matrix = np.zeros([len(self.client_state_dict[1].keys()), total_num_rounds], dtype=np.float64)
 
         del_dict = {'Singular' : self.singular,
                    'Aggregate' : self.aggregate}
@@ -166,13 +163,15 @@ class Contribution_Calculation:
         for rnd in range(1, total_num_rounds + 1):
             current_global_state = self.global_states[rnd - 1]
 
-            GRV = self.calculate_GRV(final_global_state, current_global_state)
+            GRV = self.calculate_GRV(final_global_state,
+                                    current_global_state)
 
             reference_eval = self.perform_FL_testing(current_global_state)
 
             print('----------')
             print(f'Performance of global model at timestep {rnd-1}')
             print(reference_eval)
+            self.global_performance.append(reference_eval)
 
             for client_idx in self.client_state_dict[rnd].keys():
 
@@ -190,26 +189,89 @@ class Contribution_Calculation:
                 client_eval = del_dict[del_method](reference_eval,
                                                    rnd,
                                                    client_idx)
-                client_deletion_matrix[client_idx][rnd - 1] = (client_eval[0] + client_eval[1])
-
+                client_accuracy_matrix[client_idx][rnd - 1] = (client_eval[0])
+                client_ROC_matrix[client_idx][rnd - 1] = (client_eval[1])
         print('===============')
         print('Client alignment matrix')
         print(client_alignment_matrix)
         print('===============')
-        print('Client deletion matrix')
-        print(client_deletion_matrix)
+        print('Client accuracy matrix')
+        print(client_accuracy_matrix)
+        print('===============')
+        print('Client ROC matrix')
+        print(client_ROC_matrix)
 
         self.client_alignment_matrix = client_alignment_matrix
-        self.client_deletion_matrix = client_deletion_matrix
-
+        self.client_accuracy_matrix = client_accuracy_matrix
+        self.client_ROC_matrix = client_ROC_matrix
     # def normalize_contribution_matrix(self, mat):
     #     return (mat - np.mean(mat)) / np.std(mat)
 
+
+    #==================================================
+    # EDIT CONTRIB CALC FUNCTIONS HERE
+    def _find_min_max(self, matrix):
+        min = None
+        max = None
+        for arr in matrix:
+            arr_min = np.min(arr)
+            arr_max = np.max(arr)
+            if min is None:
+                min = arr_min
+            else:
+                if arr_min < min:
+                    min = arr_min
+            if max is None:
+                max = arr_max
+            else:
+                if arr_max > max:
+                    max = arr_max
+        return min, max
+
+    def _scale_arr(self, arr, min, max):
+        print("=======")
+        print(min, max)
+        print(arr)
+        print((arr - min) / (max - min))
+        return (arr - min) / (max - min)
+
     def aggregate_contribution_matrices(self):
         contributions = defaultdict()
+
+        alignment_min, alignment_max = self._find_min_max(self.client_alignment_matrix)
+        accuracy_min, accuracy_max = self._find_min_max(self.client_accuracy_matrix)
+        ROC_min, ROC_max = self._find_min_max(self.client_ROC_matrix)
+        # print(self.client_alignment_matrix)
+
         for i in range(self.client_alignment_matrix.shape[0]):
-            contributions[i] = np.sum(self.client_alignment_matrix[i]) + np.sum(self.client_deletion_matrix[i]) / self.model_hyperparams['rounds']
-        return contributions
+            alignment = self._scale_arr(self.client_alignment_matrix[i],
+                                        alignment_min,
+                                        alignment_max)
+
+            accuracy = self._scale_arr(self.client_accuracy_matrix[i],
+                                       accuracy_min,
+                                       accuracy_max)
+
+            ROC = self._scale_arr(self.client_ROC_matrix[i],
+                                  ROC_min,
+                                  ROC_max)
+
+            alignment_component = np.sum(alignment)
+            accuracy_component = np.sum(accuracy)
+            ROC_component = np.sum(ROC)
+            num_rounds = self.model_hyperparams['rounds']
+
+            aggregate = alignment_component + accuracy_component + ROC_component
+            contributions[i] = {"aggregate" : aggregate,
+                                "alignment_arr": self.client_alignment_matrix[i],
+                                "accuracy_arr": self.client_accuracy_matrix[i],
+                                "ROC_arr": self.client_ROC_matrix[i],
+                                "alignment_component": alignment_component,
+                                "accuracy_component": accuracy_component,
+                                "ROC_component": ROC_component,
+                                "num_rounds": num_rounds}
+
+        return contributions, self.global_performance
 
     def perform_FL_testing(self, model):
         """ Obtains predictions given a validation/test dataset upon
@@ -227,11 +289,15 @@ class Contribution_Calculation:
         with th.no_grad():
             predicted_labels = model(X_test.float())
             if self.model_hyperparams['is_condensed']:
-                accuracy = accuracy_score(y_test.numpy(), predicted_labels.round().numpy())
-                roc = roc_auc_score(y_test.numpy(), predicted_labels.numpy())
+                accuracy = accuracy_score(y_test.numpy(),
+                                        predicted_labels.round().numpy())
+                roc = roc_auc_score(y_test.numpy(),
+                                        predicted_labels.numpy())
             else:
-                accuracy = accuracy_score(y_test.numpy(), np.array([np.argmax(i) for i in predicted_labels.numpy()]))
-                roc = roc_auc_score(y_test.numpy(), np.array([softmax(i) for i in predicted_labels.numpy()]), multi_class='ovr')
+                accuracy = accuracy_score(y_test.numpy(),
+                                        np.array([np.argmax(i) for i in predicted_labels.numpy()]))
+                roc = roc_auc_score(y_test.numpy(),
+                                        np.array([softmax(i) for i in predicted_labels.numpy()]), multi_class='ovr')
         return accuracy, roc
 
     def index_scale_coeffs_by_integer(self):
