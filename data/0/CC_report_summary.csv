@@ -43,3 +43,48 @@ mean
 []
 std
 []
+========================
+|User Id: 0|
+|Aggregate Contribution: 3.92611049813239|
+|Alignment Contribution: [0.24307048 4.97975445 9.66642475]|
+|Accuracy Contribution: [ 0.04666667 -0.00666667  0.00666667]|
+|ROC Contribution: [ 0.01244444 -0.00195556 -0.00017778]|
+|Summed Alignment Contribution: 1.5026537080089426|
+|Summed Accuracy Contribution: 1.2999999999999987|
+|Summed ROC Contribution: 1.1234567901234487|
+========================
+|User Id: 1|
+|Aggregate Contribution: 3.9261651558075594|
+|Alignment Contribution: [0.24416585 4.9798274  9.66577148]|
+|Accuracy Contribution: [ 0.04666667 -0.00666667  0.00666667]|
+|ROC Contribution: [ 0.01226667 -0.00177778 -0.00017778]|
+|Summed Alignment Contribution: 1.50270836568412|
+|Summed Accuracy Contribution: 1.2999999999999987|
+|Summed ROC Contribution: 1.123456790123441|
+========================
+|User Id: 2|
+|Aggregate Contribution: 3.964466152390802|
+|Alignment Contribution: [0.24336469 4.98036194 9.66631508]|
+|Accuracy Contribution: [ 0.05333333 -0.00666667  0.00666667]|
+|ROC Contribution: [ 0.01173333 -0.00195556 -0.00035556]|
+|Summed Alignment Contribution: 1.5027377573290939|
+|Summed Accuracy Contribution: 1.3999999999999992|
+|Summed ROC Contribution: 1.061728395061709|
+========================
+|User Id: 3|
+|Aggregate Contribution: 3.7889624679844314|
+|Alignment Contribution: [0.24916853 4.97937012 9.65966511]|
+|Accuracy Contribution: [ 0.04666667 -0.01333333  0.00666667]|
+|ROC Contribution: [ 0.01208889 -0.00195556 -0.00035556]|
+|Summed Alignment Contribution: 1.5025427148980393|
+|Summed Accuracy Contribution: 1.1999999999999997|
+|Summed ROC Contribution: 1.0864197530863924|
+========================
+|User Id: 4|
+|Aggregate Contribution: 4.026000523379437|
+|Alignment Contribution: [0.24912901 4.9797616  9.65932274]|
+|Accuracy Contribution: [ 0.05333333 -0.00666667  0.00666667]|
+|ROC Contribution: [ 0.01244444 -0.00195556 -0.00017778]|
+|Summed Alignment Contribution: 1.502543733255997|
+|Summed Accuracy Contribution: 1.3999999999999992|
+|Summed ROC Contribution: 1.123456790123441|

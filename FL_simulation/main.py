@@ -25,7 +25,7 @@ binary_model_hyperparams = {
     "batch_size": 45,
     "lr": 0.1,
     "decay": 0.01,
-    "rounds":2,
+    "rounds":3,
     "epochs": 2,
     "criterion": nn.BCELoss,
     "is_condensed": True
@@ -123,8 +123,8 @@ with open(BASE_PATH + '/params.json') as json_file:
 
 # print(params)
 # print(x_stats)
-print(Q_dict)
-# print(contributions)
+# print(Q_dict)
+print(contributions)
 
 import csv
 with open(BASE_PATH + '/CC_report_summary.csv', 'w+', newline='') as csvfile:
@@ -140,6 +140,34 @@ with open(BASE_PATH + '/CC_report_summary.csv', 'w+', newline='') as csvfile:
             for param in params[param_header]:
                 writer.writerow([param])
                 writer.writerow([params[param_header][param]])
+
+    for user in contributions:
+        contribution = contributions[user]
+        aggregate = contribution["aggregate"]
+        alignment_arr = contribution["alignment_arr"]
+        accuracy_arr = contribution["accuracy_arr"]
+        ROC_arr = contribution["ROC_arr"]
+        alignment_component = contribution["alignment_component"]
+        accuracy_component = contribution["accuracy_component"]
+        ROC_component = contribution["ROC_component"]
+
+        writer.writerow(["========================"])
+        writer.writerow([f"User Id: {user}"])
+        writer.writerow([f"Aggregate Contribution: {aggregate}"])
+        writer.writerow([f"Alignment Contribution: {alignment_arr}"])
+        writer.writerow([f"Accuracy Contribution: {accuracy_arr}"])
+        writer.writerow([f"ROC Contribution: {ROC_arr}"])
+        writer.writerow([f"Summed Alignment Contribution: {alignment_component}"])
+        writer.writerow([f"Summed Accuracy Contribution: {accuracy_component}"])
+        writer.writerow([f"Summed ROC Contribution: {ROC_component}"])
+
+        # "alignment_arr": alignment,
+        # "accuracy_arr": accuracy,
+        # "ROC_arr": ROC,
+        # "alignment_component": alignment_component,
+        # "accuracy_component": accuracy_component,
+        # "ROC_component": ROC_component,
+        # "num_rounds": num_rounds}
 
 with open(BASE_PATH + '/CC_report_detailed.csv', 'w+', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=' ',

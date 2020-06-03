@@ -207,11 +207,67 @@ class Contribution_Calculation:
 
     #==================================================
     # EDIT CONTRIB CALC FUNCTIONS HERE
-    
+    def _find_min_max(self, matrix):
+        min = None
+        max = None
+        for arr in matrix:
+            arr_min = np.min(arr)
+            arr_max = np.max(arr)
+            if min is None:
+                min = arr_min
+            else:
+                if arr_min < min:
+                    min = arr_min
+            if max is None:
+                max = arr_max
+            else:
+                if arr_max > max:
+                    max = arr_max
+        return min, max
+
+    def _scale_arr(self, arr, min, max):
+        print("=======")
+        print(min, max)
+        print(arr)
+        print((arr - min) / (max - min))
+        return (arr - min) / (max - min)
+
     def aggregate_contribution_matrices(self):
         contributions = defaultdict()
+
+        alignment_min, alignment_max = self._find_min_max(self.client_alignment_matrix)
+        accuracy_min, accuracy_max = self._find_min_max(self.client_accuracy_matrix)
+        ROC_min, ROC_max = self._find_min_max(self.client_ROC_matrix)
+        # print(self.client_alignment_matrix)
+
         for i in range(self.client_alignment_matrix.shape[0]):
-            contributions[i] = np.sum(self.client_alignment_matrix[i]) + np.sum(self.client_accuracy_matrix[i]) / self.model_hyperparams['rounds']
+            alignment = self._scale_arr(self.client_alignment_matrix[i],
+                                        alignment_min,
+                                        alignment_max)
+
+            accuracy = self._scale_arr(self.client_accuracy_matrix[i],
+                                       accuracy_min,
+                                       accuracy_max)
+
+            ROC = self._scale_arr(self.client_ROC_matrix[i],
+                                  ROC_min,
+                                  ROC_max)
+
+            alignment_component = np.sum(alignment)
+            accuracy_component = np.sum(accuracy)
+            ROC_component = np.sum(ROC)
+            num_rounds = self.model_hyperparams['rounds']
+
+            aggregate = alignment_component + accuracy_component + ROC_component
+            contributions[i] = {"aggregate" : aggregate,
+                                "alignment_arr": self.client_alignment_matrix[i],
+                                "accuracy_arr": self.client_accuracy_matrix[i],
+                                "ROC_arr": self.client_ROC_matrix[i],
+                                "alignment_component": alignment_component,
+                                "accuracy_component": accuracy_component,
+                                "ROC_component": ROC_component,
+                                "num_rounds": num_rounds}
+
         return contributions
 
     def perform_FL_testing(self, model):
