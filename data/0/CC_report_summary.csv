@@ -1,6 +1,6 @@
 ========================
 |Global Model Performance Over Time|
-|(0.5, 0.735288888888889)| |(0.76, 0.9150222222222223)| |(0.8, 0.9264)|
+|(0.5, 0.7495111111111111)| |(0.86, 0.9584)| |(0.8866666666666667, 0.9610666666666667)|
 ========================
 meta
 ========================
@@ -48,46 +48,46 @@ std
 []
 ========================
 |User Id: 0|
-|Aggregate Contribution: 3.708935593528948|
-|Alignment Contribution: [0.27049795 5.03357649 9.72172642]|
-|Accuracy Contribution: [0.         0.04       0.00666667]|
-|ROC Contribution: [0.09813333 0.00497778 0.00231111]|
-|Summed Alignment Contribution: 1.5035235394084094|
-|Summed Accuracy Contribution: 1.1666666666666647|
-|Summed ROC Contribution: 1.0387453874538737|
+|Aggregate Contribution: 3.7641253098468987|
+|Alignment Contribution: [ 0.32012022  5.32809067 10.20615101]|
+|Accuracy Contribution: [0.06666667 0.02       0.02      ]|
+|ROC Contribution: [0.1616     0.00284444 0.00142222]|
+|Summed Alignment Contribution: 1.5064160587455775|
+|Summed Accuracy Contribution: 1.2499999999999996|
+|Summed ROC Contribution: 1.0077092511013217|
 ========================
 |User Id: 1|
-|Aggregate Contribution: 3.527498871419773|
-|Alignment Contribution: [0.27334589 5.03382301 9.71853828]|
-|Accuracy Contribution: [0.         0.03333333 0.00666667]|
-|ROC Contribution: [0.09671111 0.00497778 0.00231111]|
-|Summed Alignment Contribution: 1.5035136315673765|
-|Summed Accuracy Contribution: 0.9999999999999972|
-|Summed ROC Contribution: 1.023985239852399|
+|Aggregate Contribution: 3.3891541685680933|
+|Alignment Contribution: [ 0.32194334  5.32826662 10.20443726]|
+|Accuracy Contribution: [0.04666667 0.02666667 0.01333333]|
+|ROC Contribution: [0.16248889 0.00231111 0.00106667]|
+|Summed Alignment Contribution: 1.5064449174667702|
+|Summed Accuracy Contribution: 0.8750000000000013|
+|Summed ROC Contribution: 1.007709251101322|
 ========================
 |User Id: 2|
-|Aggregate Contribution: 3.509644802907432|
-|Alignment Contribution: [0.27143323 5.0354147  9.72449493]|
-|Accuracy Contribution: [0.         0.03333333 0.00666667]|
-|ROC Contribution: [0.096      0.00408889 0.00213333]|
-|Summed Alignment Contribution: 1.5041097475568794|
-|Summed Accuracy Contribution: 0.9999999999999972|
-|Summed ROC Contribution: 1.005535055350555|
+|Aggregate Contribution: 2.6118965889410104|
+|Alignment Contribution: [ 0.32126746  5.32893944 10.20716381]|
+|Accuracy Contribution: [0.01333333 0.02       0.01333333]|
+|ROC Contribution: [0.15875556 0.0016     0.00106667]|
+|Summed Alignment Contribution: 1.506720377487265|
+|Summed Accuracy Contribution: 0.12500000000000078|
+|Summed ROC Contribution: 0.9801762114537446|
 ========================
 |User Id: 3|
-|Aggregate Contribution: 3.646278917238517|
-|Alignment Contribution: [0.27812314 5.03368187 9.71469498]|
-|Accuracy Contribution: [0.         0.04       0.00666667]|
-|ROC Contribution: [0.09333333 0.00426667 0.00177778]|
-|Summed Alignment Contribution: 1.5035974904242513|
-|Summed Accuracy Contribution: 1.1666666666666647|
-|Summed ROC Contribution: 0.976014760147601|
+|Aggregate Contribution: 2.860355435606455|
+|Alignment Contribution: [ 0.32775828  5.32796669 10.1972971 ]|
+|Accuracy Contribution: [0.03333333 0.01333333 0.01333333]|
+|ROC Contribution: [0.15768889 0.00248889 0.00106667]|
+|Summed Alignment Contribution: 1.5062805457386133|
+|Summed Accuracy Contribution: 0.3750000000000003|
+|Summed ROC Contribution: 0.9790748898678419|
 ========================
 |User Id: 4|
-|Aggregate Contribution: 2.840589157458058|
-|Alignment Contribution: [0.27766654 5.03366137 9.71487236]|
-|Accuracy Contribution: [0.         0.00666667 0.00666667]|
-|ROC Contribution: [0.09528889 0.00444444 0.00231111]|
-|Summed Alignment Contribution: 1.5035657872243569|
-|Summed Accuracy Contribution: 0.3333333333333324|
-|Summed ROC Contribution: 1.003690036900369|
+|Aggregate Contribution: 3.2475449773922542|
+|Alignment Contribution: [ 0.32721668  5.32841539 10.19813156]|
+|Accuracy Contribution: [0.04666667 0.02       0.01333333]|
+|ROC Contribution: [0.15928889 0.00284444 0.00106667]|
+|Summed Alignment Contribution: 1.506355550079479|
+|Summed Accuracy Contribution: 0.7500000000000006|
+|Summed ROC Contribution: 0.9911894273127747|

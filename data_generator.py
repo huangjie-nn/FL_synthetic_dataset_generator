@@ -51,7 +51,7 @@ class SyntheticDataset:
 
     def _generate_y(self, x, noise, w):
         if self.x_level_noise == 1:
-            x = x + np.random.normal(loc=0, scale=0.1, size=x.shape) * noise
+            x = x + (np.random.normal(loc=0, scale=0.1, size=x.shape) * noise)
             num_samples = x.shape[0]
             prob = softmax(np.matmul(x, w))
             y = np.argmax(prob, axis=1)
@@ -60,7 +60,7 @@ class SyntheticDataset:
             prob = softmax(np.matmul(x, w))
             # prob = prob + noise * np.random.normal(loc=0., scale=0.1, size=(num_samples, self.num_classes), axis=1)
             y = np.argmax(prob, axis=1)
-            x = x + np.random.normal(loc=0, scale=0.1, size=x.shape) * noise
+            x = x + (np.random.normal(loc=0, scale=0.1, size=x.shape) * noise)
         return y
 
     def _generate_task(self, num_samples, noise, loc, label_weights, perturb):
