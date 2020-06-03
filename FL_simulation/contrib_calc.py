@@ -152,7 +152,8 @@ class Contribution_Calculation:
 
         final_global_state = self.global_states[total_num_rounds]
         client_alignment_matrix = np.zeros([len(self.client_state_dict[1].keys()), total_num_rounds], dtype=np.float64)
-        client_deletion_matrix = np.zeros([len(self.client_state_dict[1].keys()), total_num_rounds], dtype=np.float64)
+        client_accuracy_matrix = np.zeros([len(self.client_state_dict[1].keys()), total_num_rounds], dtype=np.float64)
+        client_ROC_matrix = np.zeros([len(self.client_state_dict[1].keys()), total_num_rounds], dtype=np.float64)
 
         del_dict = {'Singular' : self.singular,
                    'Aggregate' : self.aggregate}
@@ -185,25 +186,32 @@ class Contribution_Calculation:
                 client_eval = del_dict[del_method](reference_eval,
                                                    rnd,
                                                    client_idx)
-                client_deletion_matrix[client_idx][rnd - 1] = (client_eval[0] + client_eval[1])
-
+                client_accuracy_matrix[client_idx][rnd - 1] = (client_eval[0])
+                client_ROC_matrix[client_idx][rnd - 1] = (client_eval[1])
         print('===============')
         print('Client alignment matrix')
         print(client_alignment_matrix)
         print('===============')
-        print('Client deletion matrix')
-        print(client_deletion_matrix)
+        print('Client accuracy matrix')
+        print(client_accuracy_matrix)
+        print('===============')
+        print('Client ROC matrix')
+        print(client_ROC_matrix)
 
         self.client_alignment_matrix = client_alignment_matrix
-        self.client_deletion_matrix = client_deletion_matrix
-
+        self.client_accuracy_matrix = client_accuracy_matrix
+        self.client_ROC_matrix = client_ROC_matrix
     # def normalize_contribution_matrix(self, mat):
     #     return (mat - np.mean(mat)) / np.std(mat)
 
+
+    #==================================================
+    # EDIT CONTRIB CALC FUNCTIONS HERE
+    
     def aggregate_contribution_matrices(self):
         contributions = defaultdict()
         for i in range(self.client_alignment_matrix.shape[0]):
-            contributions[i] = np.sum(self.client_alignment_matrix[i]) + np.sum(self.client_deletion_matrix[i]) / self.model_hyperparams['rounds']
+            contributions[i] = np.sum(self.client_alignment_matrix[i]) + np.sum(self.client_accuracy_matrix[i]) / self.model_hyperparams['rounds']
         return contributions
 
     def perform_FL_testing(self, model):

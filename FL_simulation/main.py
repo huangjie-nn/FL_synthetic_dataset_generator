@@ -9,9 +9,10 @@ from synth_data_prep import *
 ##################
 
 dataset_idx = sys.argv[1]
+BASE_PATH =  './data/' + str(dataset_idx)
 
-train_path = './data/' + str(dataset_idx) + '/data.json'
-test_path = './data/' + str(dataset_idx) + '/test_data.json'
+train_path = BASE_PATH + '/data.json'
+test_path = BASE_PATH + '/test_data.json'
 training_datasets = prep_synth_data(train_path)
 testing_dataset = prep_synth_test_data(test_path)
 
@@ -70,7 +71,7 @@ binary_model_structure =  {
 # }
 
 model_hyperparams = binary_model_hyperparams
-model_structure = binary_model_hyperparams
+model_structure = binary_model_structure
 
 #============
 # Set up Federated Learning environment.
@@ -109,18 +110,38 @@ trained_model, global_states, client_states, scale_coeffs, global_model_state_di
 )
 
 cc = Contribution_Calculation(global_states, model_hyperparams, client_states, testing_dataset, scale_coeffs)
-cc.contribution_calculation('Singular')
+cc.contribution_calculation('Aggregate')
 
 contributions = cc.aggregate_contribution_matrices()
 
-with open('./data/' + str(dataset_idx) + '/Q_dict.json') as json_file:
+with open(BASE_PATH + '/Q_dict.json') as json_file:
     Q_dict = json.load(json_file)
-with open('./data/' + str(dataset_idx) + '/x_stats.json') as json_file:
+with open(BASE_PATH + '/x_stats.json') as json_file:
     x_stats = json.load(json_file)
-with open('./data/' + str(dataset_idx) + '/params.json') as json_file:
+with open(BASE_PATH + '/params.json') as json_file:
     params = json.load(json_file)
 
-print(params)
-print(x_stats)
+# print(params)
+# print(x_stats)
 print(Q_dict)
-print(contributions)
+# print(contributions)
+
+import csv
+with open(BASE_PATH + '/CC_report_summary.csv', 'w+', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=' ',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    for param_header in params:
+        writer.writerow(["========================"])
+        writer.writerow([param_header])
+        writer.writerow(["========================"])
+        if type(params[param_header]) is list:
+            writer.writerow(params[param_header])
+        else:
+            for param in params[param_header]:
+                writer.writerow([param])
+                writer.writerow([params[param_header][param]])
+
+with open(BASE_PATH + '/CC_report_detailed.csv', 'w+', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=' ',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(['test'])
