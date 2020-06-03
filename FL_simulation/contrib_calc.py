@@ -148,6 +148,8 @@ class Contribution_Calculation:
             client_alignment_matrix (np.array): Client alignments at each timestep.
             client_deletion_matrix (np.array): Differences in client performance at each timestep.
         """
+        self.global_performance = []
+
         total_num_rounds = self.model_hyperparams['rounds']
 
         final_global_state = self.global_states[total_num_rounds]
@@ -169,6 +171,7 @@ class Contribution_Calculation:
             print('----------')
             print(f'Performance of global model at timestep {rnd-1}')
             print(reference_eval)
+            self.global_performance.append(reference_eval)
 
             for client_idx in self.client_state_dict[rnd].keys():
 
@@ -268,7 +271,7 @@ class Contribution_Calculation:
                                 "ROC_component": ROC_component,
                                 "num_rounds": num_rounds}
 
-        return contributions
+        return contributions, self.global_performance
 
     def perform_FL_testing(self, model):
         """ Obtains predictions given a validation/test dataset upon

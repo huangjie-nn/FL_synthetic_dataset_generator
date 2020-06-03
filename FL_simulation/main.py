@@ -10,6 +10,7 @@ from synth_data_prep import *
 
 dataset_idx = sys.argv[1]
 BASE_PATH =  './data/' + str(dataset_idx)
+print(BASE_PATH)
 
 train_path = BASE_PATH + '/data.json'
 test_path = BASE_PATH + '/test_data.json'
@@ -112,7 +113,7 @@ trained_model, global_states, client_states, scale_coeffs, global_model_state_di
 cc = Contribution_Calculation(global_states, model_hyperparams, client_states, testing_dataset, scale_coeffs)
 cc.contribution_calculation('Aggregate')
 
-contributions = cc.aggregate_contribution_matrices()
+contributions, global_performance = cc.aggregate_contribution_matrices()
 
 with open(BASE_PATH + '/Q_dict.json') as json_file:
     Q_dict = json.load(json_file)
@@ -130,6 +131,11 @@ import csv
 with open(BASE_PATH + '/CC_report_summary.csv', 'w+', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=' ',
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
+    writer.writerow(["========================"])
+    writer.writerow(["Global Model Performance Over Time"])
+    writer.writerow(global_performance)
+
     for param_header in params:
         writer.writerow(["========================"])
         writer.writerow([param_header])

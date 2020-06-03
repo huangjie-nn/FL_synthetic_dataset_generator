@@ -1,0 +1,93 @@
+========================
+|Global Model Performance Over Time|
+|(0.5666666666666667, 0.8840888888888889)| |(0.8, 0.9431111111111111)| |(0.88, 0.9475555555555556)|
+========================
+meta
+========================
+n_parties
+5
+n_classes
+2
+n_features
+5
+seed
+1232323232
+testset_size_per_party
+30
+========================
+feature_distribution
+========================
+x_mean
+[]
+x_sigma
+[]
+========================
+sample_size
+========================
+data_portion
+|[0.2, 0.2, 0.2, 0.2, 0.2]|
+total_size
+3000
+========================
+label_distribution
+========================
+|[0.5, 0.5]| |[0.5, 0.5]| |[0.5, 0.5]| |[0.5, 0.5]| |[0.5, 0.5]|
+========================
+noise
+========================
+noise_level
+|[0.1, 0.2, 0.4, 0.5, 0.6]|
+x_level_noise
+1
+========================
+model_perturbation
+========================
+mean
+[]
+std
+[]
+========================
+|User Id: 0|
+|Aggregate Contribution: 3.487735302309915|
+|Alignment Contribution: [0.24353568 4.88547993 9.48240948]|
+|Accuracy Contribution: [ 0.05333333  0.01333333 -0.00666667]|
+|ROC Contribution: [0.04035556 0.00231111 0.00088889]|
+|Summed Alignment Contribution: 1.5024361570107723|
+|Summed Accuracy Contribution: 0.9230769230769238|
+|Summed ROC Contribution: 1.062222222222219|
+========================
+|User Id: 1|
+|Aggregate Contribution: 3.6149128637150216|
+|Alignment Contribution: [0.24514724 4.88550806 9.48075199]|
+|Accuracy Contribution: [0.06       0.01333333 0.        ]|
+|ROC Contribution: [0.03964444 0.00213333 0.00071111]|
+|Summed Alignment Contribution: 1.502434231236391|
+|Summed Accuracy Contribution: 1.0769230769230786|
+|Summed ROC Contribution: 1.0355555555555525|
+========================
+|User Id: 2|
+|Aggregate Contribution: 3.8146109859327773|
+|Alignment Contribution: [0.24467854 4.88578939 9.48130894]|
+|Accuracy Contribution: [0.08       0.01333333 0.        ]|
+|ROC Contribution: [0.03911111 0.00177778 0.00035556]|
+|Summed Alignment Contribution: 1.502474233796026|
+|Summed Accuracy Contribution: 1.3076923076923084|
+|Summed ROC Contribution: 1.004444444444443|
+========================
+|User Id: 3|
+|Aggregate Contribution: 3.8187601820682477|
+|Alignment Contribution: [0.24922732 4.88469648 9.47512531]|
+|Accuracy Contribution: [0.08       0.01333333 0.        ]|
+|ROC Contribution: [0.03911111 0.00177778 0.00053333]|
+|Summed Alignment Contribution: 1.5021789854870562|
+|Summed Accuracy Contribution: 1.3076923076923084|
+|Summed ROC Contribution: 1.0088888888888832|
+========================
+|User Id: 4|
+|Aggregate Contribution: 3.4343556003939297|
+|Alignment Contribution: [0.25000617 4.88529778 9.47569275]|
+|Accuracy Contribution: [ 0.05333333  0.01333333 -0.00666667]|
+|ROC Contribution: [0.03875556 0.00213333 0.00053333]|
+|Summed Alignment Contribution: 1.50238978842812|
+|Summed Accuracy Contribution: 0.9230769230769238|
+|Summed ROC Contribution: 1.0088888888888858|
