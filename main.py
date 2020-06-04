@@ -10,6 +10,51 @@ from collections import defaultdict
 from helper_main import *
 import sys
 
+
+"""
+The main file for generating sythetic datasets that takes in hyper-parameters and produce datasets according
+to user specified characteristics. The datasets are being saved into folder named data/.
+In total, four files will be generated. 
+1. data.json includes the data generated. The format are 
+	{
+		"0": {
+			"x": [[],[], ......],
+			"y": []
+		},
+		"1": {
+			"x": [[],[], ......],
+			"y": []
+		}
+	}
+2. test_data.json includes the generated testing data. This refers to the seeding datasets that TTP receives at the beginning. The format are
+	{
+		"x": [[],[], ......],
+		"y": []
+	}
+3. x_stats.json includes the statistical information of all the features of every party. The format are
+	{
+		"party_0":{
+			"feature_0":{
+				"mean": 2 (example value, float),
+				"std": 0.2 (example value, float)
+			},
+			"feature_1":{
+				.....
+			}
+		}
+		"party_1":{
+			......
+		}
+	}
+4. Q_dict.json includes the model weights of all clients and also global model. The format are
+	{
+		"0":[[],[],...],
+		"1":[......],
+		......,
+		"global":[......]
+	}
+"""
+
 base_path = "./data/" + str(sys.argv[1])
 with open(base_path + "/params.json") as json_file:
 		data = json.load(json_file)
