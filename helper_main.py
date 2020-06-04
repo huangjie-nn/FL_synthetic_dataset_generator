@@ -212,7 +212,8 @@ def get_num_samples(data_portion, n_classes, size_ref, num_tasks):
 			raise ValueError("portion specified but incompatible with number "
 							"of classes.")
 		elif len(portion_list) == num_tasks - 1:
-
+			if sum(portion_list) >1 :
+				raise ValueError("the portions specified does not add up to 1." %)
 			portion_list = portion_list + [1.0 - sum(portion_list)]
 
 		elif (len(portion_list) == num_tasks) and (sum(portion_list)!=1):
