@@ -9,13 +9,15 @@ import json
 from collections import defaultdict
 from helper_main import *
 import sys
+import time
 
+start = time.time()
 
 """
 The main file for generating sythetic datasets that takes in hyper-parameters and produce datasets according
 to user specified characteristics. The datasets are being saved into folder named data/.
-In total, four files will be generated. 
-1. data.json includes the data generated. The format are 
+In total, four files will be generated.
+1. data.json includes the data generated. The format are
 	{
 		"0": {
 			"x": [[],[], ......],
@@ -89,7 +91,7 @@ weights = get_weights(
 
 #############
 # Obtain label portion for each classes for each party for testing set
-# shape: n_parties x n_classes. 
+# shape: n_parties x n_classes.
 # All label will have exact same weight for testing purpose
 #############
 test_weights = get_weights(
@@ -150,7 +152,7 @@ user_data = to_format(datasets)
 test_data = test_to_format(testset)
 
 ############################
-# saving 
+# saving
 ############################
 save_json(base_path, 'data.json', user_data)
 save_json(base_path, 'test_data.json', test_data)
@@ -158,3 +160,7 @@ save_json(base_path,'x_stats.json',x_stats)
 save_json(base_path,'Q_dict.json', model_weight_dic)
 
 print('data generation done')
+
+end = time.time()
+print("TIME FOR CLIENT" + str(sys.argv[1]))
+print(end - start)

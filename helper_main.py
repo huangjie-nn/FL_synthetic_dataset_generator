@@ -10,7 +10,7 @@ from collections import defaultdict
 
 def get_perturbation(perturb_mean, perturb_std, n_features, n_parties, n_classes):
 	"""
-	Obtain the perturbation hyper parameters from params.json. 
+	Obtain the perturbation hyper parameters from params.json.
 	Args:
 		perturb_mean (list(float)):
 			The mean for perturbation matrix for every party
@@ -23,13 +23,13 @@ def get_perturbation(perturb_mean, perturb_std, n_features, n_parties, n_classes
 	Returns:
 		perturbation matrix list in the following format
 		{
-			"0":[[].[],.....],
+			"0":[[],[],.....],
 		 	"1":[[],[],.....],
 			 .....
 		}
 	"""
-	perturb_mean = get_stats_from_json(perturb_mean, n_parties, 0)
-	perturb_std = get_stats_from_json(perturb_std, n_parties, 0.01)
+	perturb_mean = get_stats_from_json(perturb_mean, n_parties, 0.1)
+	perturb_std = get_stats_from_json(perturb_std, n_parties, 1)
 	perturb_dict = defaultdict()
 	for i, (mean, std) in enumerate(zip(perturb_mean, perturb_std)):
 
@@ -41,10 +41,10 @@ def get_perturbation(perturb_mean, perturb_std, n_features, n_parties, n_classes
 
 def test_to_format(testset):
 	"""
-	Convert the generated testset into desired format. 
+	Convert the generated testset into desired format.
 	Args:
 		testset (dict):
-			The generated testsets from each party. 
+			The generated testsets from each party.
 	Returns:
 		The dictionary containing the final testset, without the party infomation
 	"""
@@ -60,10 +60,10 @@ def test_to_format(testset):
 
 def get_x_stats(data_generator, loc_list):
 	"""
-	Convert the generated testset into desired format. 
+	Convert the generated testset into desired format.
 	Args:
 		testset (dict):
-			The generated testsets from each party. 
+			The generated testsets from each party.
 	Returns:
 		The dictionary containing the final testset, without the party infomation
 	"""
@@ -80,26 +80,26 @@ def get_x_stats(data_generator, loc_list):
 
 def get_loc_list(x_mean, x_sigma, n_parties, n_features):
 	"""
-	Given the x_mean list and x_sigma list in params.json, sample n_parties amount of loc for each n_features. 
+	Given the x_mean list and x_sigma list in params.json, sample n_parties amount of loc for each n_features.
 	Args:
 		x_mean (list(float)):
-			The x_mean defined by user, for each feature. If undefined for feature i, will take 0. 
+			The x_mean defined by user, for each feature. If undefined for feature i, will take 0.
 		x_sigma (list(float)):
 			The x_sigma defined by user, for each feature. If undefined for feature j, will take 1.
 	Returns:
-		The n_parties x n_features matrix of loc value. 
-		Row i corresponds to loc value for every feature for party i. 
+		The n_parties x n_features matrix of loc value.
+		Row i corresponds to loc value for every feature for party i.
 		Column j corresponds to loc value for every party for feature j.
 	"""
 	loc = np.zeros((n_parties, n_features))
-	x_mean = get_stats_from_json(x_mean, n_features, 0)
-	x_sigma = get_stats_from_json(x_sigma, n_features, 1)
+	x_mean = get_stats_from_json(x_mean, n_features, 0.1)
+	x_sigma = get_stats_from_json(x_sigma, n_features, 0.1)
 	################
 	# sample loc for every party of every feature (vertical sampling)
 	# for example:
 	# party_0: feature_0, feature_1
 	# party_1: feature_0, feature_1
-	# the sampling happened below for, for instance, feature_i, 
+	# the sampling happened below for, for instance, feature_i,
 	# is to sample loc for both party_0 and party_1 at the same time with mean x_mean[i], and std of x_sigma[i]
 	################
 	for i, (mean, sigma) in enumerate(zip(x_mean, x_sigma)):
@@ -108,17 +108,17 @@ def get_loc_list(x_mean, x_sigma, n_parties, n_features):
 
 def get_stats_from_json(stats_list, length, default_value = 0):
 	"""
-	Given the stats list, desired length of the list, and default_value, trim the list if longer than desired length, 
+	Given the stats list, desired length of the list, and default_value, trim the list if longer than desired length,
 	pad the list with default_value is shorter than desired length.
 	Args:
 		stats_list (list(float)):
 			A list of statistics defined by user that might need to be either trim, or pad, or leave it as it is
 		length (int):
 			The desired length of the list
-		default_value (float): 
+		default_value (float):
 			Default at 0. The default value that user wanted to pad the list if the given one is shorter than the indicated length
 	Returns:
-		Stats_list that has been transformed into specific length, either by trimming, or padding with value, or as it is. 
+		Stats_list that has been transformed into specific length, either by trimming, or padding with value, or as it is.
 	"""
 	if stats_list is None:
 		stats_list = np.array([default_value]*length)
@@ -134,7 +134,7 @@ def get_noises(noises, n_parties):
 	Get noises according to params.json
 	Args:
 		noises (list(float)):
-			A list of noises defined by user 
+			A list of noises defined by user
 		n_parties (int):
 			Number of parties
 	Returns:
@@ -146,17 +146,17 @@ def get_noises(noises, n_parties):
 
 def get_weights(weights, n_classes, num_tasks):
 	"""
-	Get label distribution for training set 
+	Get label distribution for training set
 	Args:
 		weights (list(float)):
-			A list of decimal values, with length equals to n_classes or n_classes -1. 
+			A list of decimal values, with length equals to n_classes or n_classes -1.
 		n_classes (int):
 			Number of classes
 		num_tasks (int):
 			Number of parties
 	Returns:
-		Label distribution (list of decimal value) for each party with length of n_classes. A num_tasks x n_classes matrix. 
-		Row i indicating the label propotion for party i. 
+		Label distribution (list of decimal value) for each party with length of n_classes. A num_tasks x n_classes matrix.
+		Row i indicating the label propotion for party i.
 	"""
 	weight_list = np.zeros((num_tasks, n_classes))
 	if weights is not None:
@@ -190,19 +190,19 @@ def get_weights(weights, n_classes, num_tasks):
 
 def get_num_samples(data_portion, n_classes, size_ref, num_tasks):
 	"""
-	Get number of samples for each party 
+	Get number of samples for each party
 	Args:
 		data_portion (list(float)):
-			A list of decimal values, with length equals to num_tasks or num_tasks -1. 
+			A list of decimal values, with length equals to num_tasks or num_tasks -1.
 		n_classes (int):
 			Number of classes
 		size_ref (int):
 			Total number of data sample for all the parties as a whole. Only training set is included.
-			Size of the testset is directly indicated as a number for each parties. 
+			Size of the testset is directly indicated as a number for each parties.
 		num_tasks (int):
 			Number of parties
 	Returns:
-		Number of samples for each party as a list. The round off will be given to the last party. 
+		Number of samples for each party as a list. The round off will be given to the last party.
 	"""
 	if data_portion is not None:
 		num_samples = []
@@ -213,7 +213,7 @@ def get_num_samples(data_portion, n_classes, size_ref, num_tasks):
 							"of classes.")
 		elif len(portion_list) == num_tasks - 1:
 			if sum(portion_list) >1 :
-				raise ValueError("the portions specified does not add up to 1." %)
+				raise ValueError("the portions specified does not add up to 1.")
 			portion_list = portion_list + [1.0 - sum(portion_list)]
 
 		elif (len(portion_list) == num_tasks) and (sum(portion_list)!=1):
@@ -241,7 +241,7 @@ def to_format(tasks):
 	Convert the datasets into desired format for writing out into data/ directory
 	Args:
 		tasks (dict):
-			The datasets of all parties.  
+			The datasets of all parties.
 	Returns:
 		Datsets in the following format.
 		{

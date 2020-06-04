@@ -6,9 +6,10 @@ from collections import Counter
 
 
 NUM_DIM = 10
+GET_SETS_TOLERANCE = 1000
 
 class SyntheticDataset:
-    def __init__(self, num_classes=2, seed=931231, num_dim=NUM_DIM, n_parties = 2,x_level_noise = 1):
+    def __init__(self, seed, num_classes=2, num_dim=NUM_DIM, n_parties = 2,x_level_noise = 1):
         """
         Initialize synthetic dataset instance. 
         Args:
@@ -29,6 +30,8 @@ class SyntheticDataset:
              
         """
         np.random.seed(seed)
+        self.total_attempts = 0
+        self.seed = seed
         self.num_classes = num_classes
         self.num_dim = num_dim
         self.n_parties = n_parties
@@ -145,25 +148,22 @@ class SyntheticDataset:
         """
         print('in _generate_task')
         num_labels = [math.floor(num_samples * i) for i in label_weights]
-
         left_over = num_samples - sum(num_labels)
         num_labels[-1] += left_over
-
         local_Q = self.Q + perturb
-
-        x, y=self._get_sets(num_labels, num_samples, noise, loc, local_Q,[], [], 0)
-
+        x, y = self._get_sets(num_labels, num_samples, noise, loc, local_Q,[], [], 0)
         print('expected label distribution is %s' %num_labels)
         sorted_counts = self._count_helper(y, num_labels)
 
-        print('current potion after populating step %s' %sorted_counts)
+        print('current portionafter populating step %s' %sorted_counts)
 
         final_x, final_y = self._trim(x, y, num_labels)
 
         sorted_counts = self._count_helper(final_y, num_labels)
 
-        print('current potion after trimming step %s' %sorted_counts)
-
+        print('current portionafter trimming step %s' %sorted_counts)
+        print(self.total_attempts)
+        print(self.seed)
         return {'x': final_x, 'y': final_y}, local_Q
 
     def _count_helper(self, y, num_labels):
@@ -244,11 +244,23 @@ class SyntheticDataset:
         x, y = self._generate_trialset(num_samples, noise, loc, w)
         full_x.extend(x)
         full_y.extend(y)
-        count +=1
         sorted_counts = self._count_helper(full_y, num_labels)
-        for expect, reality in zip(num_labels, sorted_counts):
-            if expect > reality:
-                x, y = self._get_sets(num_labels, num_samples, noise, loc, w, full_x, full_y, count)
+        self.total_attempts += 1
+        for class_idx in range(len(num_labels)):
+            required_amount = num_labels[class_idx]
+            generated_amount = sorted_counts[class_idx]
+            attempt_count = 0
+            while required_amount > generated_amount:
+                x, y = self._generate_trialset(num_samples, noise, loc, w)
+                for sample_idx in range(len(y)):
+                    if y[sample_idx] == class_idx:
+                        full_x.extend([x[sample_idx]])
+                        full_y.extend([y[sample_idx]])
+                generated_amount = self._count_helper(full_y, num_labels)[class_idx]
+                attempt_count += 1
+                self.total_attempts += 1
+                if attempt_count > GET_SETS_TOLERANCE:
+                    break
         return full_x, full_y
 
     def _generate_trialset(self,num_samples, noise, loc, w):
