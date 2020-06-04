@@ -67,23 +67,40 @@ print('Generating dataset')
 
 np.random.seed(data['meta']['seed'])
 
+
+#############
+# Obtain number of samples for each party as a list
+#############
 num_samples = get_num_samples(
 	data['sample_size']['data_portion'],
 	data['meta']['n_classes'],
 	data['sample_size']['total_size'],
 	data['meta']['n_parties'])
 
+#############
+# Obtain label portion for each classes for each party for training set
+# shape: n_parties x n_classes
+#############
 weights = get_weights(
 	data['label_distribution'],
 	data['meta']['n_classes'],
 	data['meta']['n_parties'])
 
+
+#############
+# Obtain label portion for each classes for each party for testing set
+# shape: n_parties x n_classes. 
+# All label will have exact same weight for testing purpose
+#############
 test_weights = get_weights(
 	None,
 	data['meta']['n_classes'],
 	data['meta']['n_parties']
 )
 
+#############
+# Obtain noise for each party as a list
+#############
 noises = get_noises(
 	data['noise']['noise_level'],
 	data['meta']['n_parties']
